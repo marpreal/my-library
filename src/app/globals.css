@@ -15,5 +15,11 @@
 }
 
 body {
-  @apply text-foreground bg-background font-sans;
+  color: var(--foreground); /* Aplica un color de texto predeterminado */
+  background: var(--background);
+  font-family: Arial, sans-serif; /* O cualquier fuente que estés utilizando */
+}
+
+input {
+  color: var(--foreground); /* Establece un color visible para el texto */
 }
