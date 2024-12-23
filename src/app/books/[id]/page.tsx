@@ -60,11 +60,11 @@ export default function BookDetailPage() {
 
   if (!book) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded mb-4 w-40"></div>
-          <div className="h-4 bg-gray-200 rounded mb-2 w-80"></div>
-          <div className="h-4 bg-gray-200 rounded w-60"></div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-yellow-100 to-pink-200 flex items-center justify-center">
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-gray-300 rounded w-40"></div>
+          <div className="h-4 bg-gray-300 rounded w-80"></div>
+          <div className="h-4 bg-gray-300 rounded w-60"></div>
         </div>
       </div>
     );
