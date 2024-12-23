@@ -14,14 +14,6 @@ model Book {
   id        Int      @id @default(autoincrement())
   titulo    String
   autor     String
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
 }
 
-model User {
-  id       Int      @id @default(autoincrement())
-  nombre   String
-  email    String   @unique
-  books    Book[]
-}
 
