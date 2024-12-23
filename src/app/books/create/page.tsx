@@ -23,7 +23,7 @@ export default function CreateBookPage() {
         throw new Error(error.error || "Error desconocido");
       }
 
-      const result = await response.json();
+      await response.json();
       alert("Libro creado!");
       setTitulo("");
       setAutor("");
