@@ -1,8 +1,8 @@
 {
     "build": {
       "commands": [
-        "npx prisma generate", // Genera el cliente de Prisma
-        "npm run build"        // Construye la aplicación
+        "npx prisma generate", 
+        "npm run build"        
       ],
       "env": {
         "DATABASE_URL": "@database_url"
