@@ -3,6 +3,41 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+
+  if (!id) {
+    return NextResponse.json({ error: "ID is required" }, { status: 400 });
+  }
+
+  try {
+    const book = await prisma.book.findUnique({
+      where: { id: parseInt(id, 10) },
+      select: {
+        id: true,
+        title: true,
+        author: true,
+        date: true,
+      },
+    });
+
+    if (!book) {
+      return NextResponse.json({ error: "Book not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(book, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching book:", (error as Error).message);
+    return NextResponse.json(
+      { error: (error as Error).message || "Error fetching book" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

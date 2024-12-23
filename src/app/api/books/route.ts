@@ -16,14 +16,13 @@ export async function GET() {
     });
     return NextResponse.json(books, { status: 200 });
   } catch (error) {
-    console.error("Error fetching books:", error); // Uso explícito del error
+    console.error("Error fetching books:", error);
     return NextResponse.json(
       { error: "Error fetching books" },
       { status: 500 }
     );
   }
 }
-
 
 export async function POST(request: Request) {
   const { title, author, date } = await request.json();
