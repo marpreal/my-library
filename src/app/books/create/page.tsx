@@ -28,8 +28,13 @@ export default function CreateBookPage() {
       setTitulo("");
       setAutor("");
     } catch (error) {
-      console.error("Error en la solicitud:", error.message);
-      alert(`Error: ${error.message}`);
+      if (error instanceof Error) {
+        console.error("Error en la solicitud:", error.message);
+        alert(`Error: ${error.message}`);
+      } else {
+        console.error("Error inesperado:", error);
+        alert("Error desconocido");
+      }
     }
   };
 
