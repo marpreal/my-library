@@ -5,15 +5,25 @@ const prisma = new PrismaClient();
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
+
+  if (!id) {
+    return NextResponse.json(
+      { error: "ID is required" },
+      { status: 400 }
+    );
+  }
 
   try {
     await prisma.book.delete({
       where: { id: parseInt(id, 10) },
     });
-    return NextResponse.json({ message: "Book deleted successfully" }, { status: 200 });
+    return NextResponse.json(
+      { message: "Book deleted successfully" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error deleting book:", (error as Error).message);
     return NextResponse.json(
@@ -25,10 +35,17 @@ export async function DELETE(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await params;
   const { title, author, date } = await request.json();
+
+  if (!id || !title || !author || !date) {
+    return NextResponse.json(
+      { error: "ID, title, author, and date are required" },
+      { status: 400 }
+    );
+  }
 
   try {
     const updatedBook = await prisma.book.update({

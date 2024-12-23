@@ -7,16 +7,23 @@ export async function GET() {
   try {
     const books = await prisma.book.findMany({
       orderBy: { date: "desc" },
+      select: {
+        id: true,
+        title: true,
+        author: true,
+        date: true,
+      },
     });
     return NextResponse.json(books, { status: 200 });
   } catch (error) {
-    console.error("Error fetching books:", (error as Error).message);
+    console.error("Error fetching books:", error); // Uso explícito del error
     return NextResponse.json(
-      { error: (error as Error).message || "Error fetching books" },
+      { error: "Error fetching books" },
       { status: 500 }
     );
   }
 }
+
 
 export async function POST(request: Request) {
   const { title, author, date } = await request.json();

@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Book } from "./types";
 
-export default function BookSearch({ books }: { books: any[] }) {
+export default function BookSearch({ books }: { books: Book[] }) {
   const [filteredBooks, setFilteredBooks] = useState(books);
   const [searchTitle, setSearchTitle] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
-    // Actualizar los libros filtrados al cambiar los libros originales
     setFilteredBooks(books);
   }, [books]);
 
@@ -60,12 +60,12 @@ export default function BookSearch({ books }: { books: any[] }) {
 
       setFilteredBooks(filteredBooks.filter((book) => book.id !== id));
       alert("Book deleted!");
-    } catch (error) {
+    } catch {
       alert("Error deleting book");
     }
   };
 
-  const handleEdit = async (book: any) => {
+  const handleEdit = async (book: Book) => {
     const newTitle = prompt("New Title:", book.title) || book.title;
     const newAuthor = prompt("New Author:", book.author) || book.author;
     const newDate = prompt("New Date (YYYY-MM-DD):", book.date) || book.date;
@@ -74,7 +74,11 @@ export default function BookSearch({ books }: { books: any[] }) {
       const response = await fetch(`/api/books/${book.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTitle, author: newAuthor, date: newDate }),
+        body: JSON.stringify({
+          title: newTitle,
+          author: newAuthor,
+          date: newDate,
+        }),
       });
 
       if (!response.ok) {
@@ -86,34 +90,34 @@ export default function BookSearch({ books }: { books: any[] }) {
         filteredBooks.map((b) => (b.id === book.id ? updatedBook : b))
       );
       alert("Book updated!");
-    } catch (error) {
+    } catch {
       alert("Error updating book");
     }
   };
 
+
   return (
     <div className="max-w-6xl w-full px-6">
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
-      <input
-  type="text"
-  placeholder="Search by title"
-  value={searchTitle}
-  onChange={handleTitleChange}
-  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
-/>
-<input
-  type="date"
-  value={startDate}
-  onChange={handleStartDateChange}
-  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
-/>
-<input
-  type="date"
-  value={endDate}
-  onChange={handleEndDateChange}
-  className="flex-1 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
-/>
-
+        <input
+          type="text"
+          placeholder="Search by title"
+          value={searchTitle}
+          onChange={handleTitleChange}
+          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
+        />
+        <input
+          type="date"
+          value={startDate}
+          onChange={handleStartDateChange}
+          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
+        />
+        <input
+          type="date"
+          value={endDate}
+          onChange={handleEndDateChange}
+          className="flex-1 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-800 bg-white"
+        />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredBooks.map((book) => (
@@ -121,7 +125,9 @@ export default function BookSearch({ books }: { books: any[] }) {
             key={book.id}
             className="bg-white p-6 rounded-lg shadow-lg border border-gray-200"
           >
-            <h2 className="text-2xl font-semibold mb-2 text-gray-800">{book.title}</h2>
+            <h2 className="text-2xl font-semibold mb-2 text-gray-800">
+              {book.title}
+            </h2>
             <p className="text-gray-700 mb-1">Author: {book.author}</p>
             <p className="text-gray-500 text-sm">
               Date: {new Date(book.date).toLocaleDateString()}
