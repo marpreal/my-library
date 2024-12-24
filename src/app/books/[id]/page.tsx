@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Book } from "../types";
+import { Book, Review } from "../types";
+import Image from "next/image";
 
 export default function BookDetailPage() {
   const params = useParams();
   const [book, setBook] = useState<Book | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [review, setReview] = useState("");
   const [rating, setRating] = useState(0);
   const router = useRouter();
@@ -26,8 +28,16 @@ export default function BookDetailPage() {
         } else {
           console.error("Failed to fetch book details");
         }
+
+        const reviewResponse = await fetch(`/api/books/${bookId}/reviews`);
+        if (reviewResponse.ok) {
+          const reviewData = await reviewResponse.json();
+          setReviews(reviewData);
+        } else {
+          console.error("Failed to fetch reviews");
+        }
       } catch (error) {
-        console.error("Error fetching book:", error);
+        console.error("Error fetching book or reviews:", error);
       }
     };
 
@@ -41,7 +51,7 @@ export default function BookDetailPage() {
         console.error("No book ID found for submitting review");
         return;
       }
-      const response = await fetch(`/api/books/${bookId}/review`, {
+      const response = await fetch(`/api/books/${bookId}/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ review, rating }),
@@ -52,10 +62,31 @@ export default function BookDetailPage() {
       }
 
       alert("Review submitted!");
+      setReview("");
+      setRating(0);
+
+      const updatedReviews = await fetch(`/api/books/${bookId}/reviews`);
+      if (updatedReviews.ok) {
+        setReviews(await updatedReviews.json());
+      }
     } catch (error) {
       console.error("Error submitting review:", error);
       alert("Error submitting review");
     }
+  };
+
+  const renderStars = () => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <span
+        key={index}
+        onClick={() => setRating(index + 1)}
+        className={`cursor-pointer text-2xl ${
+          index < rating ? "text-yellow-500" : "text-gray-300"
+        }`}
+      >
+        ★
+      </span>
+    ));
   };
 
   if (!book) {
@@ -86,26 +117,26 @@ export default function BookDetailPage() {
         <p className="text-gray-600 mb-6">
           Published: {new Date(book.date).toLocaleDateString()}
         </p>
+        {book.imageUrl && (
+          <Image
+            src={book.imageUrl}
+            alt={`${book.title} cover`}
+            width={500}
+            height={300}
+            className="w-full h-auto rounded-lg mb-6"
+            priority
+          />
+        )}
         <textarea
           placeholder="Write your review here..."
           value={review}
           onChange={(e) => setReview(e.target.value)}
-          className="w-full p-4 border rounded-lg mb-4"
-        ></textarea>
+          className="w-full p-4 border rounded-lg mb-4 bg-white text-black placeholder-gray-500"
+        />
+
         <div className="flex items-center gap-2 mb-6">
           <label className="text-gray-700 font-medium">Rating:</label>
-          <select
-            value={rating}
-            onChange={(e) => setRating(Number(e.target.value))}
-            className="border rounded-lg px-4 py-2"
-          >
-            <option value={0}>Select</option>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <option key={star} value={star}>
-                {star} Star{star > 1 ? "s" : ""}
-              </option>
-            ))}
-          </select>
+          {renderStars()}
         </div>
         <button
           onClick={handleSubmitReview}
@@ -113,14 +144,18 @@ export default function BookDetailPage() {
         >
           Submit Review
         </button>
+      </div>
 
-        {book.imageUrl && (
-          <img
-            src={book.imageUrl}
-            alt={`${book.title} cover`}
-            className="w-full h-auto rounded-lg mb-6"
-          />
-        )}
+      <div className="bg-white p-6 rounded-xl shadow-lg max-w-2xl w-full mt-6">
+        <h2 className="text-2xl font-bold text-orange-700 mb-4">Reviews</h2>
+        {reviews.map((r, index) => (
+          <div key={index} className="border-b pb-4 mb-4">
+            <p className="text-gray-800">{r.review}</p>
+            <p className="text-yellow-500">
+              {Array(r.rating).fill("★").join("")}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   );

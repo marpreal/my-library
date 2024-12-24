@@ -10,10 +10,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Review {
+  id      Int      @id @default(autoincrement())
+  bookId  Int
+  book    Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  review  String
+  rating  Int
+  createdAt DateTime @default(now())
+}
+
 model Book {
   id       Int      @id @default(autoincrement())
   title    String
   author   String
   date     DateTime
-  imageUrl String?  
+  imageUrl String?
+  reviews  Review[]
 }
+

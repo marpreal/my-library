@@ -5,3 +5,8 @@ export type Book = {
   date: string;
   imageUrl?: string;
 };
+
+export type Review = {
+  review: string;
+  rating: number;
+};
