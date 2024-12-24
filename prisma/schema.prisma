@@ -11,8 +11,9 @@ datasource db {
 }
 
 model Book {
-  id     Int      @id @default(autoincrement())
-  title  String
-  author String
-  date   DateTime
+  id       Int      @id @default(autoincrement())
+  title    String
+  author   String
+  date     DateTime
+  imageUrl String?  
 }

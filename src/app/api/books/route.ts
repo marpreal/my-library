@@ -25,11 +25,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { title, author, date } = await request.json();
+  const { title, author, date, imageUrl } = await request.json();
 
   try {
     const newBook = await prisma.book.create({
-      data: { title, author, date: new Date(date) },
+      data: { title, author, date: new Date(date), imageUrl },
     });
 
     return NextResponse.json(newBook, { status: 201 });
@@ -41,3 +41,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

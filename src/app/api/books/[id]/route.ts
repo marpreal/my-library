@@ -21,6 +21,7 @@ export async function GET(
         title: true,
         author: true,
         date: true,
+        imageUrl: true, 
       },
     });
 
@@ -37,6 +38,7 @@ export async function GET(
     );
   }
 }
+
 
 export async function DELETE(
   request: Request,

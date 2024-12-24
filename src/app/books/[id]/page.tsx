@@ -79,7 +79,9 @@ export default function BookDetailPage() {
         Back to Books
       </button>
       <div className="bg-white p-6 rounded-xl shadow-lg max-w-2xl w-full">
-        <h1 className="text-3xl font-bold text-orange-700 mb-4">{book.title}</h1>
+        <h1 className="text-3xl font-bold text-orange-700 mb-4">
+          {book.title}
+        </h1>
         <h2 className="text-xl text-gray-700 mb-2">Author: {book.author}</h2>
         <p className="text-gray-600 mb-6">
           Published: {new Date(book.date).toLocaleDateString()}
@@ -111,6 +113,14 @@ export default function BookDetailPage() {
         >
           Submit Review
         </button>
+
+        {book.imageUrl && (
+          <img
+            src={book.imageUrl}
+            alt={`${book.title} cover`}
+            className="w-full h-auto rounded-lg mb-6"
+          />
+        )}
       </div>
     </div>
   );
