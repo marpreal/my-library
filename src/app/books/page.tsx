@@ -80,7 +80,7 @@ export default function BooksPage() {
       console.error("Error fetching book details:", error);
     }
   };
-  
+
   const handleDeleteBook = async (id: number) => {
     try {
       const response = await fetch(`/api/books/${id}`, {
@@ -95,7 +95,6 @@ export default function BooksPage() {
       console.error("Error:", error);
     }
   };
-  
 
   const filteredBooks = booksThisMonth.filter((book) =>
     book.title.toLowerCase().includes(searchTitle.toLowerCase())
@@ -117,44 +116,97 @@ export default function BooksPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-yellow-100 to-pink-200 flex flex-col items-center py-10 relative">
-      <h1 className="text-4xl font-bold text-orange-700 mb-6 drop-shadow-lg">
-        Books
-      </h1>
+    <div className="min-h-screen flex flex-col items-center py-10 relative overflow-hidden">
+      <div
+        className="absolute inset-2 bg-center bg-cover z-0"
+        style={{
+          backgroundImage: "url('/library_background.jpg')",
+          filter: "blur(8px)",
+          transform: "scale(1.02)",
+          maxHeight: "calc(100vh - 20px)",
+          borderRadius: "8px",
+          overflow: "hidden",
+        }}
+      ></div>
+
+      <div className="relative text-center mb-8 z-10 px-8 py-6 rounded-lg shadow-lg">
+        <h1
+          className="text-7xl font-bold relative drop-shadow-lg"
+          style={{
+            color: "var(--gold)",
+          }}
+        >
+          Books
+        </h1>
+      </div>
+
       <Link
         href="/"
-        className="absolute top-4 left-4 px-4 py-2 bg-orange-600 text-white rounded-lg shadow-md hover:bg-orange-700 transition transform hover:scale-105"
+        className="absolute top-4 left-4 px-4 py-2 bg-gold text-highlight rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-105 z-10"
+        style={{
+          backgroundColor: "var(--gold)",
+          color: "white",
+        }}
       >
         Back to Menu
       </Link>
 
-      <div className="flex gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-300 text-center">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">
-            Books This Month
-          </h2>
-          <p className="text-orange-600 text-3xl font-semibold">
-            {isLoading ? "-" : booksThisMonth.length}
-          </p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-300 text-center">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">
-            Books This Year
-          </h2>
-          <p className="text-orange-600 text-3xl font-semibold">
-            {isLoading ? "-" : booksThisYear.length}
-          </p>
-        </div>
-      </div>
+      <div className="absolute top-20 right-10 z-10 bg-white/70 p-6 rounded-lg shadow-lg border border-[rgba(224,178,26,0.7)] backdrop-blur-md">
+  <ul className="space-y-4">
+    <li className="flex justify-between items-center">
+      <h2
+        className="text-xl font-bold"
+        style={{
+          color: "var(--gold)",
+        }}
+      >
+        Books This Month
+      </h2>
+      <p
+        className="text-2xl font-semibold ml-4"
+        style={{
+          color: "var(--gold)",
+        }}
+      >
+        {isLoading ? "-" : booksThisMonth.length}
+      </p>
+    </li>
+    <li className="flex justify-between items-center">
+      <h2
+        className="text-xl font-bold"
+        style={{
+          color: "var(--gold)",
+        }}
+      >
+        Books This Year
+      </h2>
+      <p
+        className="text-2xl font-semibold ml-4"
+        style={{
+          color: "var(--gold)",
+        }}
+      >
+        {isLoading ? "-" : booksThisYear.length}
+      </p>
+    </li>
+  </ul>
+</div>
 
-      <div className="flex justify-between items-center w-full max-w-6xl mb-4 px-6">
+
+      <div className="flex justify-between items-center w-full max-w-6xl mb-4 px-6 z-10">
         <button
           onClick={handlePreviousMonth}
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg shadow-md hover:bg-orange-700 transition"
+          className="px-4 py-2 bg-[rgba(139,69,19,0.7)] text-white rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition"
         >
           Previous Month
         </button>
-        <span className="text-lg font-semibold text-gray-800">
+        <span
+          className="text-lg font-semibold rounded-lg px-4 py-2"
+          style={{
+            backgroundColor: "rgba(255, 255, 255, 0.5)",
+            color: "var(--gold)",
+          }}
+        >
           {new Date(currentYear, currentMonth).toLocaleString("default", {
             month: "long",
             year: "numeric",
@@ -162,7 +214,7 @@ export default function BooksPage() {
         </span>
         <button
           onClick={handleNextMonth}
-          className="px-4 py-2 bg-orange-600 text-white rounded-lg shadow-md hover:bg-orange-700 transition"
+          className="px-4 py-2 bg-[rgba(139,69,19,0.7)] text-white rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition"
         >
           Next Month
         </button>
@@ -173,24 +225,24 @@ export default function BooksPage() {
         placeholder="Search by title"
         value={searchTitle}
         onChange={(e) => setSearchTitle(e.target.value)}
-        className="w-full max-w-6xl px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-orange-500 focus:border-orange-500 text-gray-800 bg-white mb-6"
+        className="w-full max-w-6xl px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-golden focus:border-golden text-gray-800 bg-white/90 mb-6 backdrop-blur-md z-10"
         disabled={isLoading}
       />
 
       {isLoading ? (
         renderSkeleton()
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6 w-full max-w-6xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6 w-full max-w-6xl z-10">
           {filteredBooks.map((book) => (
             <div
               key={book.id}
-              className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 hover:shadow-xl transition cursor-pointer"
+              className="bg-white/90 p-6 rounded-lg shadow-lg border border-gray-300 hover:shadow-xl transition cursor-pointer backdrop-blur-md"
               onClick={() => router.push(`/books/${book.id}`)}
             >
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              <h2 className="text-2xl font-bold text-highlight mb-2">
                 {book.title}
               </h2>
-              <p className="text-gray-600 mb-4">Author: {book.author}</p>
+              <p className="text-gray-700 mb-4">Author: {book.author}</p>
               <p className="text-gray-500 text-sm mb-4">
                 Date: {new Date(book.date).toLocaleDateString()}
               </p>
@@ -239,7 +291,11 @@ export default function BooksPage() {
 
       <button
         onClick={handleOpenModal}
-        className="fixed bottom-8 right-8 bg-green-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:bg-green-700 transition transform hover:scale-110 animate-bounce"
+        className="fixed bottom-8 right-8 bg-gold text-highlight p-4 rounded-full shadow-lg border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-110 z-10"
+        style={{
+          backgroundColor: "var(--gold)",
+          color: "white",
+        }}
       >
         + Add Book
       </button>

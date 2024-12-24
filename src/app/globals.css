@@ -1,41 +1,58 @@
-@import "react-datepicker/dist/react-datepicker.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Roboto", sans-serif;
+  --background: #faf5e6;
+  --accent: #83511e;
+  --highlight: #8c6239;
+  --golden: #e0b21a;
+  --gold: #ac8812;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.no-hover:hover {
+  color: inherit;
+}
+
+a:hover {
+  color: var(--golden);
+  text-decoration: underline;
 }
 
 body {
-  color: var(--foreground); 
-  background: var(--background);
-  font-family: Arial, sans-serif; 
+  color: var(--highlight);
+  background-color: var(--background);
+  font-family: var(--font-serif);
 }
 
-input {
-  color: var(--foreground); 
-  background-color: var(--background); 
-  border: 1px solid var(--foreground); 
-  padding: 0.5rem; 
-  border-radius: 0.375rem; 
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
 }
 
-input::placeholder {
-  color: rgba(255, 255, 255, 0.6); 
+p {
+  font-family: var(--font-sans);
+  transition: color 0.3s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  input::placeholder {
-    color: rgba(237, 237, 237, 0.6); 
-  }
+p:hover {
+  color: var(--golden);
+}
+
+button,
+a {
+  transition: all 0.3s ease;
+}
+
+button:hover,
+a:hover {
+  background-color: var(--highlight);
+  color: var(--golden);
 }

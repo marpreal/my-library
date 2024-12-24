@@ -81,7 +81,7 @@ export default function BookDetailPage() {
         key={index}
         onClick={() => setRating(index + 1)}
         className={`cursor-pointer text-2xl ${
-          index < rating ? "text-yellow-500" : "text-gray-300"
+          index < rating ? "text-[rgba(224,178,26,1)]" : "text-gray-300"
         }`}
       >
         ★
@@ -91,7 +91,7 @@ export default function BookDetailPage() {
 
   if (!book) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-100 via-yellow-100 to-pink-200 flex items-center justify-center">
+      <div className="min-h-screen bg-[rgba(0,0,0,0.6)] flex items-center justify-center">
         <div className="animate-pulse space-y-4">
           <div className="h-6 bg-gray-300 rounded w-40"></div>
           <div className="h-4 bg-gray-300 rounded w-80"></div>
@@ -102,19 +102,39 @@ export default function BookDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-yellow-100 to-pink-200 flex flex-col items-center py-10">
+    <div className="min-h-screen flex flex-col items-center py-10 relative overflow-hidden">
+      <div
+        className="absolute inset-0 bg-center bg-cover z-0"
+        style={{
+          backgroundImage: "url('/library_background.jpg')",
+          filter: "blur(8px)",
+          transform: "scale(1.02)",
+        }}
+      ></div>
       <button
         onClick={() => router.push("/books")}
-        className="absolute top-4 left-4 px-4 py-2 bg-orange-600 text-white rounded-lg shadow-md hover:bg-orange-700 transition"
+        className="absolute top-4 left-4 px-4 py-2 bg-[rgba(224,178,26,0.7)] text-white rounded-lg shadow-md hover:bg-[rgba(224,178,26,0.9)] transition z-10"
       >
         Back to Books
       </button>
-      <div className="bg-white p-6 rounded-xl shadow-lg max-w-2xl w-full">
-        <h1 className="text-3xl font-bold text-orange-700 mb-4">
+      <div
+        className="bg-white/90 p-10 rounded-xl shadow-lg max-w-3xl w-full border border-[rgba(224,178,26,0.7)] z-10"
+        style={{
+          backdropFilter: "blur(10px)",
+        }}
+      >
+        <h1
+          className="text-4xl font-bold mb-6"
+          style={{
+            color: "var(--gold)",
+          }}
+        >
           {book.title}
         </h1>
-        <h2 className="text-xl text-gray-700 mb-2">Author: {book.author}</h2>
-        <p className="text-gray-600 mb-6">
+        <h2 className="text-xl mb-2" style={{ color: "var(--gold)" }}>
+          Author: {book.author}
+        </h2>
+        <p className="text-gray-700 mb-6">
           Published: {new Date(book.date).toLocaleDateString()}
         </p>
         {book.imageUrl && (
@@ -131,28 +151,47 @@ export default function BookDetailPage() {
           placeholder="Write your review here..."
           value={review}
           onChange={(e) => setReview(e.target.value)}
-          className="w-full p-4 border rounded-lg mb-4 bg-white text-black placeholder-gray-500"
+          className="w-full px-4 py-3 border rounded-lg bg-white shadow-md focus:ring-2 focus:ring-[rgba(224,178,26,0.7)] focus:outline-none mb-4"
         />
-
         <div className="flex items-center gap-2 mb-6">
-          <label className="text-gray-700 font-medium">Rating:</label>
+          <label className="font-medium" style={{ color: "var(--gold)" }}>
+            Rating:
+          </label>
           {renderStars()}
         </div>
         <button
           onClick={handleSubmitReview}
-          className="w-full bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition"
+          className="w-full bg-[rgba(224,178,26,0.7)] text-white px-6 py-3 rounded-lg hover:bg-[rgba(224,178,26,0.9)] transition"
         >
           Submit Review
         </button>
       </div>
-
-      <div className="bg-white p-6 rounded-xl shadow-lg max-w-2xl w-full mt-6">
-        <h2 className="text-2xl font-bold text-orange-700 mb-4">Reviews</h2>
+      <div
+        className="bg-white/90 p-8 rounded-xl shadow-lg max-w-3xl w-full mt-6 border border-[rgba(224,178,26,0.7)] z-10"
+        style={{
+          backdropFilter: "blur(10px)",
+        }}
+      >
+        <h2
+          className="text-3xl font-bold mb-4"
+          style={{
+            color: "var(--gold)",
+          }}
+        >
+          Reviews
+        </h2>
         {reviews.map((r, index) => (
-          <div key={index} className="border-b pb-4 mb-4">
+          <div key={index} className="border-b pb-4 mb-4 last:border-none">
             <p className="text-gray-800">{r.review}</p>
-            <p className="text-yellow-500">
-              {Array(r.rating).fill("★").join("")}
+            <p
+              className="text-[rgba(224,178,26,1)]"
+              style={{
+                fontFamily: "serif",
+              }}
+            >
+              {Array(r.rating)
+                .fill("★")
+                .join("")}
             </p>
           </div>
         ))}
