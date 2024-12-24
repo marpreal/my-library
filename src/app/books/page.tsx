@@ -118,22 +118,19 @@ export default function BooksPage() {
   return (
     <div className="min-h-screen flex flex-col items-center py-10 relative overflow-hidden">
       <div
-        className="absolute inset-2 bg-center bg-cover z-0"
+        className="absolute inset-0 bg-center bg-cover z-0"
         style={{
           backgroundImage: "url('/library_background.jpg')",
           filter: "blur(8px)",
           transform: "scale(1.02)",
-          maxHeight: "calc(100vh - 20px)",
-          borderRadius: "8px",
-          overflow: "hidden",
         }}
       ></div>
 
-      <div className="relative text-center mb-8 z-10 px-8 py-6 rounded-lg shadow-lg">
+      <div className="relative text-center mb-6 sm:mb-8 z-10">
         <h1
-          className="text-7xl font-bold relative drop-shadow-lg"
+          className="text-4xl sm:text-7xl font-bold text-gold relative"
           style={{
-            color: "var(--gold)",
+            textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
           }}
         >
           Books
@@ -151,47 +148,44 @@ export default function BooksPage() {
         Back to Menu
       </Link>
 
-      <div className="absolute top-20 right-10 z-10 bg-white/70 p-6 rounded-lg shadow-lg border border-[rgba(224,178,26,0.7)] backdrop-blur-md">
-  <ul className="space-y-4">
-    <li className="flex justify-between items-center">
-      <h2
-        className="text-xl font-bold"
-        style={{
-          color: "var(--gold)",
-        }}
-      >
-        Books This Month
-      </h2>
-      <p
-        className="text-2xl font-semibold ml-4"
-        style={{
-          color: "var(--gold)",
-        }}
-      >
-        {isLoading ? "-" : booksThisMonth.length}
-      </p>
-    </li>
-    <li className="flex justify-between items-center">
-      <h2
-        className="text-xl font-bold"
-        style={{
-          color: "var(--gold)",
-        }}
-      >
-        Books This Year
-      </h2>
-      <p
-        className="text-2xl font-semibold ml-4"
-        style={{
-          color: "var(--gold)",
-        }}
-      >
-        {isLoading ? "-" : booksThisYear.length}
-      </p>
-    </li>
-  </ul>
-</div>
-
+      <div className="absolute top-20 right-10 sm:right-10 z-10 w-full sm:w-auto p-4 sm:p-6 flex flex-col sm:block space-y-4 sm:space-y-0 sm:space-x-4">
+        <div className="flex justify-between items-center">
+          <h2
+            className="text-lg sm:text-xl font-bold text-gold"
+            style={{
+              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
+            }}
+          >
+            Books This Month
+          </h2>
+          <p
+            className="text-xl sm:text-2xl font-semibold text-gold ml-4"
+            style={{
+              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
+            }}
+          >
+            {isLoading ? "-" : booksThisMonth.length}
+          </p>
+        </div>
+        <div className="flex justify-between items-center">
+          <h2
+            className="text-lg sm:text-xl font-bold text-gold"
+            style={{
+              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)", // Sombra oscura para resaltar el texto
+            }}
+          >
+            Books This Year
+          </h2>
+          <p
+            className="text-xl sm:text-2xl font-semibold text-gold ml-4"
+            style={{
+              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)", // Sombra oscura para los números
+            }}
+          >
+            {isLoading ? "-" : booksThisYear.length}
+          </p>
+        </div>
+      </div>
 
       <div className="flex justify-between items-center w-full max-w-6xl mb-4 px-6 z-10">
         <button
@@ -232,7 +226,7 @@ export default function BooksPage() {
       {isLoading ? (
         renderSkeleton()
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6 w-full max-w-6xl z-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-6 w-full max-w-6xl z-10 mb-6">
           {filteredBooks.map((book) => (
             <div
               key={book.id}
@@ -291,7 +285,7 @@ export default function BooksPage() {
 
       <button
         onClick={handleOpenModal}
-        className="fixed bottom-8 right-8 bg-gold text-highlight p-4 rounded-full shadow-lg border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-110 z-10"
+        className="fixed bottom-6 right-6 bg-gold text-highlight p-4 rounded-full shadow-lg border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-110 z-10"
         style={{
           backgroundColor: "var(--gold)",
           color: "white",

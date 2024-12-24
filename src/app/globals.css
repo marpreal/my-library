@@ -56,3 +56,18 @@ a:hover {
   background-color: var(--highlight);
   color: var(--golden);
 }
+
+@media (max-width: 640px) {
+  .grid-cols-1 > div {
+    margin-bottom: 1rem; 
+  }
+
+  .fixed {
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .input, .buttons-container {
+    margin-bottom: 1rem;
+  }
+}

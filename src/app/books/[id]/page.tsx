@@ -143,8 +143,8 @@ export default function BookDetailPage() {
             <Image
               src={book.imageUrl}
               alt={`${book.title} cover`}
-              width={150} // Imagen más pequeña
-              height={200} // Imagen más pequeña
+              width={150}
+              height={200}
               className="rounded-lg shadow-lg object-cover"
               priority
             />

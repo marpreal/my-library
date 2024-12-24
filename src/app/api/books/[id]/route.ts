@@ -21,7 +21,7 @@ export async function GET(
         title: true,
         author: true,
         date: true,
-        imageUrl: true, 
+        imageUrl: true,
       },
     });
 
@@ -39,7 +39,6 @@ export async function GET(
   }
 }
 
-
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -47,10 +46,7 @@ export async function DELETE(
   const { id } = await params;
 
   if (!id) {
-    return NextResponse.json(
-      { error: "ID is required" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "ID is required" }, { status: 400 });
   }
 
   try {
@@ -75,7 +71,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { title, author, date } = await request.json();
+  const { title, author, date, imageUrl } = await request.json();
 
   if (!id || !title || !author || !date) {
     return NextResponse.json(
@@ -87,7 +83,12 @@ export async function PATCH(
   try {
     const updatedBook = await prisma.book.update({
       where: { id: parseInt(id, 10) },
-      data: { title, author, date: new Date(date) },
+      data: {
+        title,
+        author,
+        date: new Date(date),
+        imageUrl,
+      },
     });
 
     return NextResponse.json(updatedBook, { status: 200 });
