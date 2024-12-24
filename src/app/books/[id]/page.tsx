@@ -92,10 +92,11 @@ export default function BookDetailPage() {
   if (!book) {
     return (
       <div className="min-h-screen bg-[rgba(0,0,0,0.6)] flex items-center justify-center">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-300 rounded w-40"></div>
-          <div className="h-4 bg-gray-300 rounded w-80"></div>
-          <div className="h-4 bg-gray-300 rounded w-60"></div>
+        <div className="animate-pulse space-y-4 bg-white/80 p-8 rounded-lg shadow-lg">
+          <div className="w-[150px] h-[200px] bg-gray-300 rounded mx-auto"></div>
+          <div className="h-6 bg-gray-300 rounded w-40 mx-auto mt-4"></div>
+          <div className="h-4 bg-gray-300 rounded w-60 mx-auto mt-2"></div>
+          <div className="h-4 bg-gray-300 rounded w-48 mx-auto mt-2"></div>
         </div>
       </div>
     );
@@ -138,14 +139,16 @@ export default function BookDetailPage() {
           Published: {new Date(book.date).toLocaleDateString()}
         </p>
         {book.imageUrl && (
-          <Image
-            src={book.imageUrl}
-            alt={`${book.title} cover`}
-            width={500}
-            height={300}
-            className="w-full h-auto rounded-lg mb-6"
-            priority
-          />
+          <div className="flex justify-center items-center mb-6">
+            <Image
+              src={book.imageUrl}
+              alt={`${book.title} cover`}
+              width={150} // Imagen más pequeña
+              height={200} // Imagen más pequeña
+              className="rounded-lg shadow-lg object-cover"
+              priority
+            />
+          </div>
         )}
         <textarea
           placeholder="Write your review here..."
@@ -189,9 +192,7 @@ export default function BookDetailPage() {
                 fontFamily: "serif",
               }}
             >
-              {Array(r.rating)
-                .fill("★")
-                .join("")}
+              {Array(r.rating).fill("★").join("")}
             </p>
           </div>
         ))}
