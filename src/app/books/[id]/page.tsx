@@ -11,6 +11,7 @@ export default function BookDetailPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [review, setReview] = useState("");
   const [rating, setRating] = useState(0);
+  const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,28 +52,74 @@ export default function BookDetailPage() {
         console.error("No book ID found for submitting review");
         return;
       }
-      const response = await fetch(`/api/books/${bookId}/reviews`, {
-        method: "POST",
+
+      const url = editingReviewId
+        ? `/api/books/${bookId}/reviews`
+        : `/api/books/${bookId}/reviews`;
+
+      const method = editingReviewId ? "PATCH" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ review, rating }),
+        body: JSON.stringify({
+          reviewId: editingReviewId,
+          review,
+          rating,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit review");
+        throw new Error(editingReviewId ? "Failed to edit review" : "Failed to submit review");
       }
 
-      alert("Review submitted!");
+      alert(editingReviewId ? "Review edited!" : "Review submitted!");
       setReview("");
       setRating(0);
+      setEditingReviewId(null);
 
       const updatedReviews = await fetch(`/api/books/${bookId}/reviews`);
       if (updatedReviews.ok) {
         setReviews(await updatedReviews.json());
       }
     } catch (error) {
-      console.error("Error submitting review:", error);
-      alert("Error submitting review");
+      console.error("Error submitting/editing review:", error);
+      alert("Error submitting/editing review");
     }
+  };
+
+  const handleDeleteReview = async (reviewId: number) => {
+    try {
+      const bookId = params?.id;
+      if (!bookId) {
+        console.error("No book ID found for deleting review");
+        return;
+      }
+      const response = await fetch(`/api/books/${bookId}/reviews`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviewId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete review");
+      }
+
+      alert("Review deleted!");
+
+      setReviews((prevReviews) =>
+        prevReviews.filter((r) => r.id !== reviewId)
+      );
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      alert("Error deleting review");
+    }
+  };
+
+  const startEditingReview = (review: Review) => {
+    setEditingReviewId(review.id);
+    setReview(review.review);
+    setRating(review.rating);
   };
 
   const renderStars = () => {
@@ -166,7 +213,7 @@ export default function BookDetailPage() {
           onClick={handleSubmitReview}
           className="w-full bg-[rgba(224,178,26,0.7)] text-white px-6 py-3 rounded-lg hover:bg-[rgba(224,178,26,0.9)] transition"
         >
-          Submit Review
+          {editingReviewId ? "Edit Review" : "Submit Review"}
         </button>
       </div>
       <div
@@ -183,8 +230,8 @@ export default function BookDetailPage() {
         >
           Reviews
         </h2>
-        {reviews.map((r, index) => (
-          <div key={index} className="border-b pb-4 mb-4 last:border-none">
+        {reviews.map((r) => (
+          <div key={r.id} className="border-b pb-4 mb-4 last:border-none">
             <p className="text-gray-800">{r.review}</p>
             <p
               className="text-[rgba(224,178,26,1)]"
@@ -194,6 +241,20 @@ export default function BookDetailPage() {
             >
               {Array(r.rating).fill("★").join("")}
             </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => startEditingReview(r)}
+                className="text-blue-500 hover:text-blue-700"
+              >
+                ✏️
+              </button>
+              <button
+                onClick={() => handleDeleteReview(r.id)}
+                className="text-red-500 hover:text-red-700"
+              >
+                🗑️
+              </button>
+            </div>
           </div>
         ))}
       </div>

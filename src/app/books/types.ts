@@ -7,6 +7,7 @@ export type Book = {
 };
 
 export type Review = {
+  id: number;
   review: string;
   rating: number;
 };
