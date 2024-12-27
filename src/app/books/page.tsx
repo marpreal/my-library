@@ -125,18 +125,6 @@ export default function BooksPage() {
           transform: "scale(1.02)",
         }}
       ></div>
-
-      <div className="relative text-center mb-6 sm:mb-8 z-10">
-        <h1
-          className="text-4xl sm:text-7xl font-bold text-gold relative"
-          style={{
-            textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
-          }}
-        >
-          Books
-        </h1>
-      </div>
-
       <Link
         href="/"
         className="absolute top-4 left-4 px-4 py-2 bg-gold text-highlight rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-105 z-10"
@@ -147,11 +135,20 @@ export default function BooksPage() {
       >
         Back to Menu
       </Link>
-
-      <div className="absolute top-20 right-10 sm:right-10 z-10 w-full sm:w-auto p-4 sm:p-6 flex flex-col sm:block space-y-4 sm:space-y-0 sm:space-x-4">
-        <div className="flex justify-between items-center">
+      <div className="relative text-center z-10 mt-16 sm:mt-0">
+        <h1
+          className="text-4xl sm:text-7xl font-bold text-gold relative"
+          style={{
+            textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
+          }}
+        >
+          Books
+        </h1>
+      </div>
+      <div className="relative z-10 mt-6 sm:mt-8 flex flex-col items-center sm:flex-row sm:justify-between sm:w-full lg:flex-col lg:items-end lg:w-full lg:px-10 lg:space-y-6 lg:mb-6">
+        <div className="flex flex-row items-center justify-center space-x-2 sm:space-x-4 lg:items-end">
           <h2
-            className="text-lg sm:text-xl font-bold text-gold"
+            className="text-sm sm:text-lg font-bold text-gold"
             style={{
               textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
             }}
@@ -159,7 +156,7 @@ export default function BooksPage() {
             Books This Month
           </h2>
           <p
-            className="text-xl sm:text-2xl font-semibold text-gold ml-4"
+            className="text-sm sm:text-xl font-semibold text-gold"
             style={{
               textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
             }}
@@ -167,32 +164,32 @@ export default function BooksPage() {
             {isLoading ? "-" : booksThisMonth.length}
           </p>
         </div>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-row items-center justify-center space-x-2 sm:space-x-4 lg:items-end">
           <h2
-            className="text-lg sm:text-xl font-bold text-gold"
+            className="text-sm sm:text-lg font-bold text-gold"
             style={{
-              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)", // Sombra oscura para resaltar el texto
+              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
             }}
           >
             Books This Year
           </h2>
           <p
-            className="text-xl sm:text-2xl font-semibold text-gold ml-4"
+            className="text-sm sm:text-xl font-semibold text-gold"
             style={{
-              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)", // Sombra oscura para los números
+              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
             }}
           >
             {isLoading ? "-" : booksThisYear.length}
           </p>
         </div>
       </div>
-
-      <div className="flex justify-between items-center w-full max-w-6xl mb-4 px-6 z-10">
+      <div className="flex flex-row justify-between items-center w-full max-w-6xl px-6 z-10 mt-8 sm:mt-4 lg:justify-between lg:space-x-4 lg:mb-6">
         <button
           onClick={handlePreviousMonth}
           className="px-4 py-2 bg-[rgba(139,69,19,0.7)] text-white rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition"
         >
-          Previous Month
+          <span className="hidden sm:block">Previous Month</span>
+          <span className="block sm:hidden">←</span>
         </button>
         <span
           className="text-lg font-semibold rounded-lg px-4 py-2"
@@ -210,23 +207,22 @@ export default function BooksPage() {
           onClick={handleNextMonth}
           className="px-4 py-2 bg-[rgba(139,69,19,0.7)] text-white rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition"
         >
-          Next Month
+          <span className="hidden sm:block">Next Month</span>
+          <span className="block sm:hidden">→</span>
         </button>
       </div>
-
       <input
         type="text"
         placeholder="Search by title"
         value={searchTitle}
         onChange={(e) => setSearchTitle(e.target.value)}
-        className="w-full max-w-6xl px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-golden focus:border-golden text-gray-800 bg-white/90 mb-6 backdrop-blur-md z-10"
+        className="w-full max-w-6xl px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-golden focus:border-golden text-gray-800 bg-white/90 mb-6 mt-6 backdrop-blur-md z-10"
         disabled={isLoading}
       />
-
       {isLoading ? (
         renderSkeleton()
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-4 sm:px-6 w-full max-w-6xl z-10 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-6 w-full max-w-6xl z-10 mb-6">
           {filteredBooks.map((book) => (
             <div
               key={book.id}
@@ -266,7 +262,6 @@ export default function BooksPage() {
           ))}
         </div>
       )}
-
       {isModalOpen && (
         <BookModal
           onClose={handleCloseModal}
@@ -282,7 +277,6 @@ export default function BooksPage() {
           bookToEdit={bookToEdit}
         />
       )}
-
       <button
         onClick={handleOpenModal}
         className="fixed bottom-6 right-6 bg-gold text-highlight p-4 rounded-full shadow-lg border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-110 z-10"
