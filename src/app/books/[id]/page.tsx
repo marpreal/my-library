@@ -70,7 +70,9 @@ export default function BookDetailPage() {
       });
 
       if (!response.ok) {
-        throw new Error(editingReviewId ? "Failed to edit review" : "Failed to submit review");
+        throw new Error(
+          editingReviewId ? "Failed to edit review" : "Failed to submit review"
+        );
       }
 
       alert(editingReviewId ? "Review edited!" : "Review submitted!");
@@ -107,9 +109,7 @@ export default function BookDetailPage() {
 
       alert("Review deleted!");
 
-      setReviews((prevReviews) =>
-        prevReviews.filter((r) => r.id !== reviewId)
-      );
+      setReviews((prevReviews) => prevReviews.filter((r) => r.id !== reviewId));
     } catch (error) {
       console.error("Error deleting review:", error);
       alert("Error deleting review");
@@ -159,12 +159,10 @@ export default function BookDetailPage() {
           transform: "scale(1.02)",
         }}
       ></div>
-      <button
-        onClick={() => router.push("/books")}
-        className="absolute top-4 left-4 px-4 py-2 bg-[rgba(224,178,26,0.7)] text-white rounded-lg shadow-md hover:bg-[rgba(224,178,26,0.9)] transition z-10"
-      >
+      <button onClick={() => router.push("/books")} className="back-button">
         Back to Books
       </button>
+
       <div
         className="bg-white/90 p-10 rounded-xl shadow-lg max-w-3xl w-full border border-[rgba(224,178,26,0.7)] z-10"
         style={{
