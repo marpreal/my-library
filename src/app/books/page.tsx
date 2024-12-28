@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BookModal from "./BooksModal";
 import { Book } from "./types";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function BooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -14,6 +16,11 @@ export default function BooksPage() {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [bookToEdit, setBookToEdit] = useState<Book | null>(null);
   const [searchTitle, setSearchTitle] = useState("");
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [viewYear, setViewYear] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   const handleOpenModal = () => {
@@ -33,6 +40,12 @@ export default function BooksPage() {
     const newDate = new Date(currentYear, currentMonth + 1);
     setCurrentMonth(newDate.getMonth());
     setCurrentYear(newDate.getFullYear());
+  };
+
+  const toggleViewYear = () => {
+    setViewYear(!viewYear);
+    setStartDate(null);
+    setEndDate(null);
   };
 
   useEffect(() => {
@@ -82,6 +95,7 @@ export default function BooksPage() {
   };
 
   const handleDeleteBook = async (id: number) => {
+    setIsDeleting(true);
     try {
       const response = await fetch(`/api/books/${id}`, {
         method: "DELETE",
@@ -93,12 +107,49 @@ export default function BooksPage() {
       }
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const filteredBooks = booksThisMonth.filter((book) =>
-    book.title.toLowerCase().includes(searchTitle.toLowerCase())
-  );
+  const handleBookProcessed = async (newBook: Book) => {
+    setIsProcessing(true);
+    try {
+      setBooks((prevBooks) =>
+        bookToEdit
+          ? prevBooks.map((book) => (book.id === newBook.id ? newBook : book))
+          : [newBook, ...prevBooks]
+      );
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error processing book:", error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const formatDate = (date: string) => {
+    const d = new Date(date);
+    const day = d.getDate().toString().padStart(2, "0");
+    const month = (d.getMonth() + 1).toString().padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const filteredBooks = books.filter((book) => {
+    const bookDate = new Date(book.date);
+    const matchesTitle = book.title
+      .toLowerCase()
+      .includes(searchTitle.toLowerCase());
+    const matchesDateRange = viewYear
+      ? bookDate.getFullYear() === currentYear
+      : startDate || endDate
+      ? (!startDate || bookDate >= startDate) &&
+        (!endDate || bookDate <= endDate)
+      : bookDate.getMonth() === currentMonth &&
+        bookDate.getFullYear() === currentYear;
+    return matchesTitle && matchesDateRange;
+  });
 
   const renderSkeleton = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6 w-full max-w-6xl">
@@ -135,7 +186,7 @@ export default function BooksPage() {
       >
         Back to Menu
       </Link>
-      <div className="relative text-center z-10 mt-16 sm:mt-0">
+      <div className="relative text-center z-10 mt-8 sm:mt-10">
         <h1
           className="text-4xl sm:text-7xl font-bold text-gold relative"
           style={{
@@ -145,80 +196,124 @@ export default function BooksPage() {
           Books
         </h1>
       </div>
-      <div className="relative z-10 mt-6 sm:mt-8 flex flex-col items-center sm:flex-row sm:justify-between sm:w-full lg:flex-col lg:items-end lg:w-full lg:px-10 lg:space-y-6 lg:mb-6">
-        <div className="flex flex-row items-center justify-center space-x-2 sm:space-x-4 lg:items-end">
+      {(isProcessing || isDeleting) && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-4 rounded shadow-lg text-center">
+            <p className="text-lg font-bold text-gold">
+              {isProcessing ? "Processing..." : "Deleting..."}
+            </p>
+          </div>
+        </div>
+      )}
+      <div className="relative z-10 mt-4 sm:mt-8 flex flex-col items-center sm:flex-row sm:justify-center sm:w-full lg:flex-col lg:items-center lg:w-full lg:px-10 lg:space-y-4 lg:mb-6">
+        <div className="flex flex-row sm:space-x-4 lg:items-center">
           <h2
-            className="text-sm sm:text-lg font-bold text-gold"
+            className="text-xs sm:text-lg font-bold text-[rgba(139,69,19,0.9)] mr-2"
             style={{
-              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
+              textShadow: "1px 1px 3px rgba(0, 0, 0, 0.5)",
             }}
           >
-            Books This Month
+            Month&apos;s Books
           </h2>
           <p
-            className="text-sm sm:text-xl font-semibold text-gold"
+            className="text-xs sm:text-xl font-semibold text-[rgba(139,69,19,0.9)]"
             style={{
-              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
+              textShadow: "1px 1px 3px rgba(0, 0, 0, 0.5)",
             }}
           >
             {isLoading ? "-" : booksThisMonth.length}
           </p>
         </div>
-        <div className="flex flex-row items-center justify-center space-x-2 sm:space-x-4 lg:items-end">
+        <div className="flex flex-row sm:space-x-4 lg:items-center mt-4 sm:mt-0">
           <h2
-            className="text-sm sm:text-lg font-bold text-gold"
+            className="text-xs sm:text-lg font-bold text-[rgba(139,69,19,0.9)] mr-2"
             style={{
-              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
+              textShadow: "1px 1px 3px rgba(0, 0, 0, 0.5)",
             }}
           >
-            Books This Year
+            Year&apos;s Books
           </h2>
           <p
-            className="text-sm sm:text-xl font-semibold text-gold"
+            className="text-xs sm:text-xl font-semibold text-[rgba(139,69,19,0.9)]"
             style={{
-              textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
+              textShadow: "1px 1px 3px rgba(0, 0, 0, 0.5)",
             }}
           >
             {isLoading ? "-" : booksThisYear.length}
           </p>
         </div>
       </div>
-      <div className="flex flex-row justify-between items-center w-full max-w-6xl px-6 z-10 mt-8 sm:mt-4 lg:justify-between lg:space-x-4 lg:mb-6">
+      <div className="flex flex-wrap justify-center items-center gap-4 mb-6 z-20 max-w-6xl px-6 mt-6 sm:mt-8">
+        <div className="flex justify-center gap-2">
+          {!viewYear && (
+            <button
+              onClick={handlePreviousMonth}
+              className="p-2 sm:px-4 sm:py-2 bg-[rgba(139,69,19,0.7)] text-white rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition"
+            >
+              <span className="hidden sm:inline">Previous Month</span>
+              <span className="inline sm:hidden text-2xl">←</span>
+            </button>
+          )}
+          <span className="text-lg font-semibold rounded-lg px-4 py-2 bg-white/50 text-gold">
+            {viewYear
+              ? currentYear
+              : new Date(currentYear, currentMonth).toLocaleString("default", {
+                  month: "long",
+                  year: "numeric",
+                })}
+          </span>
+          {!viewYear && (
+            <button
+              onClick={handleNextMonth}
+              className="p-2 sm:px-4 sm:py-2 bg-[rgba(139,69,19,0.7)] text-white rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition"
+            >
+              <span className="hidden sm:inline">Next Month</span>
+              <span className="inline sm:hidden text-2xl">→</span>
+            </button>
+          )}
+        </div>
+        <div className="w-full flex flex-col sm:flex-row gap-2">
+          <input
+            type="text"
+            placeholder="Search by title"
+            value={searchTitle}
+            onChange={(e) => setSearchTitle(e.target.value)}
+            className="flex-1 px-2 py-1 text-xs sm:text-base rounded-lg border border-gray-300 shadow-sm focus:ring-golden focus:border-golden"
+            disabled={isLoading}
+          />
+          <div className="flex flex-row justify-between gap-2 relative">
+            <DatePicker
+              selected={startDate || undefined}
+              onChange={(date) => setStartDate(date)}
+              selectsStart
+              startDate={startDate || undefined}
+              endDate={endDate || undefined}
+              placeholderText="Start Date"
+              className="flex-1 px-2 py-1 text-xs sm:text-base rounded-lg border border-gray-300 shadow-sm focus:ring-golden focus:border-golden"
+              calendarClassName="z-50"
+              popperPlacement="bottom-start"
+            />
+            <DatePicker
+              selected={endDate || undefined}
+              onChange={(date) => setEndDate(date)}
+              selectsEnd
+              startDate={startDate || undefined}
+              endDate={endDate || undefined}
+              minDate={startDate || undefined}
+              placeholderText="End Date"
+              className="flex-1 px-2 py-1 text-xs sm:text-base rounded-lg border border-gray-300 shadow-sm focus:ring-golden focus:border-golden"
+              calendarClassName="z-50"
+              popperPlacement="bottom-start"
+            />
+          </div>
+        </div>
         <button
-          onClick={handlePreviousMonth}
+          onClick={toggleViewYear}
           className="px-4 py-2 bg-[rgba(139,69,19,0.7)] text-white rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition"
         >
-          <span className="hidden sm:block">Previous Month</span>
-          <span className="block sm:hidden">←</span>
-        </button>
-        <span
-          className="text-lg font-semibold rounded-lg px-4 py-2"
-          style={{
-            backgroundColor: "rgba(255, 255, 255, 0.5)",
-            color: "var(--gold)",
-          }}
-        >
-          {new Date(currentYear, currentMonth).toLocaleString("default", {
-            month: "long",
-            year: "numeric",
-          })}
-        </span>
-        <button
-          onClick={handleNextMonth}
-          className="px-4 py-2 bg-[rgba(139,69,19,0.7)] text-white rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition"
-        >
-          <span className="hidden sm:block">Next Month</span>
-          <span className="block sm:hidden">→</span>
+          {viewYear ? "Back to Month View" : "View Entire Year"}
         </button>
       </div>
-      <input
-        type="text"
-        placeholder="Search by title"
-        value={searchTitle}
-        onChange={(e) => setSearchTitle(e.target.value)}
-        className="w-full max-w-6xl px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-golden focus:border-golden text-gray-800 bg-white/90 mb-6 mt-6 backdrop-blur-md z-10"
-        disabled={isLoading}
-      />
       {isLoading ? (
         renderSkeleton()
       ) : (
@@ -234,7 +329,7 @@ export default function BooksPage() {
               </h2>
               <p className="text-gray-700 mb-4">Author: {book.author}</p>
               <p className="text-gray-500 text-sm mb-4">
-                Date: {new Date(book.date).toLocaleDateString()}
+                Date: {formatDate(book.date)}
               </p>
               <div className="flex justify-end gap-4">
                 <button
@@ -265,15 +360,7 @@ export default function BooksPage() {
       {isModalOpen && (
         <BookModal
           onClose={handleCloseModal}
-          onBookAdded={(newBook) =>
-            bookToEdit
-              ? setBooks((prevBooks) =>
-                  prevBooks.map((book) =>
-                    book.id === newBook.id ? newBook : book
-                  )
-                )
-              : setBooks([newBook, ...books])
-          }
+          onBookAdded={handleBookProcessed}
           bookToEdit={bookToEdit}
         />
       )}
