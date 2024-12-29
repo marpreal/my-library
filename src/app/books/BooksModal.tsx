@@ -1,8 +1,7 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { Book, GoogleBook } from "./types";
 import Image from "next/image";
+import { saveBook, searchBooks } from "../api/books/books";
 
 export default function BookModal({
   onClose,
@@ -33,26 +32,20 @@ export default function BookModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const method = bookToEdit ? "PATCH" : "POST";
-    const url = bookToEdit ? `/api/books/${bookToEdit.id}` : "/api/books";
+    if (!date) {
+      alert("Please provide a valid date.");
+      return;
+    }
+
+    const payload = { title, author, date, imageUrl };
+    console.log("Payload enviado al servidor:", payload);
 
     try {
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, author, date, imageUrl }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Unknown error");
-      }
-
-      const savedBook = await response.json();
-      onBookAdded(savedBook);
+      const savedBook = await saveBook(payload, bookToEdit?.id?.toString());
+      onBookAdded({ ...savedBook, id: Number(savedBook.id) });
       onClose();
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error en saveBook:", error);
       alert("Error saving book");
     }
   };
@@ -62,31 +55,27 @@ export default function BookModal({
       alert("Please limit your search to three words.");
       return;
     }
-
+  
     const cleanQuery = query
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9 ]/g, "")
       .toLowerCase()
       .trim();
-
+  
     setSearchQuery(cleanQuery);
     setIsSearching(true);
-
+  
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
-          cleanQuery
-        )}&maxResults=10`
-      );
-      const data = await response.json();
-      setSearchResults((data.items as GoogleBook[]) || []);
+      const results = await searchBooks(cleanQuery); 
+      setSearchResults(results);
     } catch (error) {
       console.error("Error fetching books:", error);
     } finally {
       setIsSearching(false);
     }
   };
+  
 
   const handleSelectBook = (book: GoogleBook) => {
     const volumeInfo = book.volumeInfo;
@@ -97,7 +86,7 @@ export default function BookModal({
   };
 
   const highlightText = (text: string, query: string) => {
-    if (!query) return text;
+    if (!query || !text) return text;
     const parts = text.split(new RegExp(`(${query})`, "gi"));
     return parts.map((part, index) =>
       part.toLowerCase() === query.toLowerCase() ? (
@@ -154,7 +143,7 @@ export default function BookModal({
 
                 <div>
                   <p className="font-bold">
-                    {highlightText(book.volumeInfo.title, searchQuery)}
+                    {highlightText(book.volumeInfo.title || "", searchQuery)}
                   </p>
                   <p className="text-sm text-gray-600">
                     {book.volumeInfo.authors?.join(", ") || "Unknown Author"}
