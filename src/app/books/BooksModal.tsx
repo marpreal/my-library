@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Book } from "./types";
+import { Book, GoogleBook } from "./types";
 
 export default function BookModal({
   onClose,
@@ -16,6 +16,8 @@ export default function BookModal({
   const [author, setAuthor] = useState("");
   const [date, setDate] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [searchResults, setSearchResults] = useState<GoogleBook[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (bookToEdit) {
@@ -53,6 +55,33 @@ export default function BookModal({
     }
   };
 
+  const handleSearch = async (query: string) => {
+    if (!query) return;
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+          query
+        )}`
+      );
+      const data = await response.json();
+      setSearchResults(data.items as GoogleBook[] || []);
+    } catch (error) {
+      console.error("Error fetching books:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSelectBook = (book: GoogleBook) => {
+    const volumeInfo = book.volumeInfo;
+    setTitle(volumeInfo.title || "Unknown Title");
+    setAuthor((volumeInfo.authors || []).join(", ") || "Unknown Author");
+    setImageUrl(volumeInfo.imageLinks?.thumbnail || "");
+    setSearchResults([]);
+  };
+
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] flex items-center justify-center z-50">
       <div
@@ -70,6 +99,25 @@ export default function BookModal({
           {bookToEdit ? "Edit Book" : "Add a New Book"}
         </h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <input
+            type="text"
+            placeholder="Search for books..."
+            className="w-full p-2 border rounded"
+            onChange={(e) => handleSearch(e.target.value)}
+          />
+          {isSearching && <p>Searching...</p>}
+          <ul className="mt-4">
+            {searchResults.map((book) => (
+              <li
+                key={book.id}
+                className="p-2 border-b cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSelectBook(book)}
+              >
+                {book.volumeInfo.title} by{" "}
+                {(book.volumeInfo.authors || []).join(", ") || "Unknown Author"}
+              </li>
+            ))}
+          </ul>
           <input
             type="text"
             placeholder="Book Title"

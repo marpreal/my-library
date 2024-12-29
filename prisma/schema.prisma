@@ -20,11 +20,12 @@ model Review {
 }
 
 model Book {
-  id       Int      @id @default(autoincrement())
-  title    String
-  author   String
-  date     DateTime
-  imageUrl String?
-  reviews  Review[]
+  id          Int      @id @default(autoincrement())
+  title       String
+  author      String
+  date        DateTime
+  imageUrl    String?
+  description String?
+  publisher   String?
+  reviews     Review[]
 }
-

@@ -19,11 +19,11 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(reviews, { status: 200 });
+    return NextResponse.json(reviews || [], { status: 200 });
   } catch (error) {
     console.error("Error fetching reviews:", (error as Error).message);
     return NextResponse.json(
-      { error: (error as Error).message || "Error fetching reviews" },
+      { error: "Error fetching reviews" },
       { status: 500 }
     );
   }
@@ -71,7 +71,10 @@ export async function PATCH(
 
   if (!id || !reviewId || (!review && rating == null)) {
     return NextResponse.json(
-      { error: "Book ID, review ID, and at least one field to update are required" },
+      {
+        error:
+          "Book ID, review ID, and at least one field to update are required",
+      },
       { status: 400 }
     );
   }

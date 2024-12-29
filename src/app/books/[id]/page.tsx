@@ -182,6 +182,14 @@ export default function BookDetailPage() {
         </h2>
         <p className="text-gray-700 mb-6">
           Published: {new Date(book.date).toLocaleDateString()}
+          {book.description && (
+            <p className="text-gray-700 mb-4">
+              Description: {book.description}
+            </p>
+          )}
+          {book.publisher && (
+            <p className="text-gray-700 mb-4">Publisher: {book.publisher}</p>
+          )}
         </p>
         {book.imageUrl && (
           <div className="flex justify-center items-center mb-6">
@@ -228,33 +236,32 @@ export default function BookDetailPage() {
         >
           Reviews
         </h2>
-        {reviews.map((r) => (
-          <div key={r.id} className="border-b pb-4 mb-4 last:border-none">
-            <p className="text-gray-800">{r.review}</p>
-            <p
-              className="text-[rgba(224,178,26,1)]"
-              style={{
-                fontFamily: "serif",
-              }}
-            >
-              {Array(r.rating).fill("★").join("")}
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => startEditingReview(r)}
-                className="text-blue-500 hover:text-blue-700"
+        {Array.isArray(reviews) &&
+          reviews.map((r) => (
+            <div key={r.id} className="border-b pb-4 mb-4 last:border-none">
+              <p className="text-gray-800">{r.review}</p>
+              <p
+                className="text-[rgba(224,178,26,1)]"
+                style={{ fontFamily: "serif" }}
               >
-                ✏️
-              </button>
-              <button
-                onClick={() => handleDeleteReview(r.id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                🗑️
-              </button>
+                {Array(r.rating).fill("★").join("")}
+              </p>
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => startEditingReview(r)}
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={() => handleDeleteReview(r.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  🗑️
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );

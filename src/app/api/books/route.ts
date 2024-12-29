@@ -25,20 +25,19 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { title, author, date, imageUrl } = await request.json();
+  const { title, author, date, imageUrl, description, publisher } =
+    await request.json();
 
   try {
     const newBook = await prisma.book.create({
-      data: { title, author, date: new Date(date), imageUrl },
+      data: { title, author, date: new Date(date), imageUrl, description, publisher },
     });
 
     return NextResponse.json(newBook, { status: 201 });
   } catch (error) {
-    console.error("Error creating book:", (error as Error).message);
-    return NextResponse.json(
-      { error: (error as Error).message || "Error creating book" },
-      { status: 500 }
-    );
+    console.error("Error creating book:", error);
+    return NextResponse.json({ error: "Error creating book" }, { status: 500 });
   }
 }
+
 
