@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Book, GoogleBook } from "./types";
+import Image from "next/image";
 
 export default function BookModal({
   onClose,
@@ -18,6 +19,7 @@ export default function BookModal({
   const [imageUrl, setImageUrl] = useState("");
   const [searchResults, setSearchResults] = useState<GoogleBook[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (bookToEdit) {
@@ -56,17 +58,29 @@ export default function BookModal({
   };
 
   const handleSearch = async (query: string) => {
-    if (!query) return;
+    if (!query || query.split(" ").length > 3) {
+      alert("Please limit your search to three words.");
+      return;
+    }
 
+    const cleanQuery = query
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9 ]/g, "")
+      .toLowerCase()
+      .trim();
+
+    setSearchQuery(cleanQuery);
     setIsSearching(true);
+
     try {
       const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
-          query
-        )}`
+        `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(
+          cleanQuery
+        )}&maxResults=10`
       );
       const data = await response.json();
-      setSearchResults(data.items as GoogleBook[] || []);
+      setSearchResults((data.items as GoogleBook[]) || []);
     } catch (error) {
       console.error("Error fetching books:", error);
     } finally {
@@ -80,6 +94,20 @@ export default function BookModal({
     setAuthor((volumeInfo.authors || []).join(", ") || "Unknown Author");
     setImageUrl(volumeInfo.imageLinks?.thumbnail || "");
     setSearchResults([]);
+  };
+
+  const highlightText = (text: string, query: string) => {
+    if (!query) return text;
+    const parts = text.split(new RegExp(`(${query})`, "gi"));
+    return parts.map((part, index) =>
+      part.toLowerCase() === query.toLowerCase() ? (
+        <span key={index} className="bg-yellow-200 font-bold">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
   };
 
   return (
@@ -106,15 +134,32 @@ export default function BookModal({
             onChange={(e) => handleSearch(e.target.value)}
           />
           {isSearching && <p>Searching...</p>}
-          <ul className="mt-4">
+          <ul className="mt-4 max-h-40 overflow-y-auto border rounded">
             {searchResults.map((book) => (
               <li
                 key={book.id}
-                className="p-2 border-b cursor-pointer hover:bg-gray-100"
+                className="p-2 border-b cursor-pointer hover:bg-gray-100 flex items-center"
                 onClick={() => handleSelectBook(book)}
               >
-                {book.volumeInfo.title} by{" "}
-                {(book.volumeInfo.authors || []).join(", ") || "Unknown Author"}
+                <Image
+                  src={
+                    book.volumeInfo.imageLinks?.thumbnail || "/placeholder.png"
+                  }
+                  alt={book.volumeInfo.title || "No title available"}
+                  width={50}
+                  height={50}
+                  layout="intrinsic"
+                  className="w-12 h-12 mr-4"
+                />
+
+                <div>
+                  <p className="font-bold">
+                    {highlightText(book.volumeInfo.title, searchQuery)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {book.volumeInfo.authors?.join(", ") || "Unknown Author"}
+                  </p>
+                </div>
               </li>
             ))}
           </ul>
