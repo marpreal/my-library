@@ -12,6 +12,7 @@ export async function GET() {
         title: true,
         author: true,
         date: true,
+        imageUrl: true, 
       },
     });
     return NextResponse.json(books, { status: 200 });
@@ -39,5 +40,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Error creating book" }, { status: 500 });
   }
 }
-
-

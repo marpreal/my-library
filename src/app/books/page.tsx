@@ -251,7 +251,7 @@ export default function BooksPage() {
           </p>
         </div>
       </div>
-      <div className="flex flex-wrap justify-center items-center gap-4 mb-6 z-20 max-w-6xl px-6 mt-6 sm:mt-8">
+      {/* <div className="flex flex-wrap justify-center items-center gap-4 mb-6 z-20 max-w-6xl px-6 mt-6 sm:mt-8">
         <h1
           className="text-1xl sm:text-2xl font-semibold text-center"
           style={{
@@ -263,11 +263,11 @@ export default function BooksPage() {
             year: "numeric",
           }).format(new Date(currentYear, currentMonth))}
         </h1>
-      </div>
+      </div> */}
 
       <div className="flex flex-wrap justify-center items-center gap-4 mb-6 z-20 max-w-6xl px-6 mt-6 sm:mt-8">
         <div className="w-full flex flex-col sm:flex-row gap-2">
-          {!isViewingYear && ( 
+          {!isViewingYear && (
             <>
               <button
                 onClick={handlePreviousMonth}
@@ -298,7 +298,7 @@ export default function BooksPage() {
             calendarClassName="z-50"
           />
 
-          {!isViewingYear && ( 
+          {!isViewingYear && (
             <>
               <button
                 onClick={handleNextMonth}
@@ -325,9 +325,18 @@ export default function BooksPage() {
           {filteredBooks.map((book) => (
             <div
               key={book.id}
-              className="bg-white/90 p-6 rounded-lg shadow-lg border border-gray-300 hover:shadow-xl transition cursor-pointer backdrop-blur-md"
+              className="bg-white/90 p-6 rounded-lg shadow-lg border border-gray-300 hover:shadow-xl transition cursor-pointer backdrop-blur-md flex flex-col justify-between"
               onClick={() => router.push(`/books/${book.id}`)}
             >
+              {book.imageUrl && (
+                <div className="relative mb-4">
+                  <img
+                    src={book.imageUrl}
+                    alt={`${book.title} cover`}
+                    className="w-full max-h-40 object-contain rounded-lg"
+                  />
+                </div>
+              )}
               <h2 className="text-2xl font-bold text-highlight mb-2">
                 {book.title}
               </h2>
@@ -335,7 +344,7 @@ export default function BooksPage() {
               <p className="text-gray-500 text-sm mb-4">
                 Date: {formatDate(new Date(book.date))}
               </p>
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-4 mt-auto">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
