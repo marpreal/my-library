@@ -12,8 +12,8 @@ export default function BooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentMonth] = useState(new Date().getMonth());
-  const [currentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [bookToEdit, setBookToEdit] = useState<Book | null>(null);
   const [searchTitle, setSearchTitle] = useState("");
   const [selectedDates, setSelectedDates] = useState<
@@ -21,10 +21,29 @@ export default function BooksPage() {
   >([null, null]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isViewingYear, setIsViewingYear] = useState(false);
   const router = useRouter();
 
   const handleDateChange = (dates: [Date | null, Date | null]) => {
     setSelectedDates(dates);
+  };
+
+  const handlePreviousMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear((prev) => prev - 1);
+    } else {
+      setCurrentMonth((prev) => prev - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear((prev) => prev + 1);
+    } else {
+      setCurrentMonth((prev) => prev + 1);
+    }
   };
 
   useEffect(() => {
@@ -56,8 +75,8 @@ export default function BooksPage() {
     const matchesDateRange =
       selectedDates[0] && selectedDates[1]
         ? bookDate >= selectedDates[0] && bookDate <= selectedDates[1]
-        : selectedDates[0]
-        ? bookDate.toDateString() === selectedDates[0].toDateString()
+        : isViewingYear
+        ? bookDate.getFullYear() === currentYear
         : bookDate.getMonth() === currentMonth &&
           bookDate.getFullYear() === currentYear;
 
@@ -69,6 +88,10 @@ export default function BooksPage() {
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+  };
+
+  const handleToggleView = () => {
+    setIsViewingYear((prev) => !prev);
   };
 
   const handleOpenModal = () => {
@@ -229,7 +252,32 @@ export default function BooksPage() {
         </div>
       </div>
       <div className="flex flex-wrap justify-center items-center gap-4 mb-6 z-20 max-w-6xl px-6 mt-6 sm:mt-8">
+        <h1
+          className="text-1xl sm:text-2xl font-semibold text-center"
+          style={{
+            color: "#8B4513",
+          }}
+        >
+          {new Intl.DateTimeFormat("default", {
+            month: "long",
+            year: "numeric",
+          }).format(new Date(currentYear, currentMonth))}
+        </h1>
+      </div>
+
+      <div className="flex flex-wrap justify-center items-center gap-4 mb-6 z-20 max-w-6xl px-6 mt-6 sm:mt-8">
         <div className="w-full flex flex-col sm:flex-row gap-2">
+          {!isViewingYear && ( 
+            <>
+              <button
+                onClick={handlePreviousMonth}
+                className="px-4 py-2 bg-gray-200 rounded-lg shadow hover:bg-gray-300 transition"
+              >
+                ← Previous Month
+              </button>
+            </>
+          )}
+
           <input
             type="text"
             placeholder="Search by title"
@@ -249,8 +297,27 @@ export default function BooksPage() {
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-golden focus:border-golden"
             calendarClassName="z-50"
           />
+
+          {!isViewingYear && ( 
+            <>
+              <button
+                onClick={handleNextMonth}
+                className="px-4 py-2 bg-gray-200 rounded-lg shadow hover:bg-gray-300 transition"
+              >
+                Next Month →
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={handleToggleView}
+            className="px-4 py-2 bg-gold text-white rounded-lg shadow-md hover:bg-highlight hover:text-golden transition"
+          >
+            {isViewingYear ? "Back to Current Month" : "View Year"}
+          </button>
         </div>
       </div>
+
       {isLoading ? (
         renderSkeleton()
       ) : (
