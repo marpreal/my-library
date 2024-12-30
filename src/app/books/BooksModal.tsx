@@ -51,23 +51,23 @@ export default function BookModal({
   };
 
   const handleSearch = async (query: string) => {
-    if (!query || query.split(" ").length > 3) {
-      alert("Please limit your search to three words.");
+    if (!query) {
+      alert("Please enter a search query.");
       return;
     }
-  
+
     const cleanQuery = query
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9 ]/g, "")
       .toLowerCase()
       .trim();
-  
+
     setSearchQuery(cleanQuery);
     setIsSearching(true);
-  
+
     try {
-      const results = await searchBooks(cleanQuery); 
+      const results = await searchBooks(cleanQuery);
       setSearchResults(results);
     } catch (error) {
       console.error("Error fetching books:", error);
@@ -75,7 +75,6 @@ export default function BookModal({
       setIsSearching(false);
     }
   };
-  
 
   const handleSelectBook = (book: GoogleBook) => {
     const volumeInfo = book.volumeInfo;
@@ -130,16 +129,25 @@ export default function BookModal({
                 className="p-2 border-b cursor-pointer hover:bg-gray-100 flex items-center"
                 onClick={() => handleSelectBook(book)}
               >
-                <Image
-                  src={
-                    book.volumeInfo.imageLinks?.thumbnail || "/placeholder.png"
-                  }
-                  alt={book.volumeInfo.title || "No title available"}
-                  width={50}
-                  height={50}
-                  layout="intrinsic"
-                  className="w-12 h-12 mr-4"
-                />
+                {book.volumeInfo.imageLinks?.thumbnail ? (
+                  <Image
+                    src={book.volumeInfo.imageLinks.thumbnail}
+                    alt={book.volumeInfo.title || "No title available"}
+                    width={50}
+                    height={50}
+                    layout="intrinsic"
+                    className="w-12 h-12 mr-4"
+                  />
+                ) : (
+                  <Image
+                    src="https://via.placeholder.com/50"
+                    alt="Placeholder"
+                    width={50}
+                    height={50}
+                    layout="intrinsic"
+                    className="w-12 h-12 mr-4"
+                  />
+                )}
 
                 <div>
                   <p className="font-bold">
