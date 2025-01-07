@@ -33,31 +33,42 @@ export async function POST(request: Request) {
     director,
     releaseDate,
     imageUrl,
-    description,
-    genre,
     viewedDate,
+  }: {
+    title: string;
+    director?: string;
+    releaseDate?: string;
+    imageUrl?: string;
+    viewedDate: string;
   } = await request.json();
 
-  if (!viewedDate) {
+  if (!title || !viewedDate) {
     return NextResponse.json(
-      { error: "viewedDate is required" },
+      { error: "Title and viewedDate are required" },
       { status: 400 }
     );
   }
 
-  const validReleaseDate = validateAndFormatDate(releaseDate);
+  const validReleaseDate = releaseDate
+    ? validateAndFormatDate(releaseDate)
+    : null;
   const validViewedDate = validateAndFormatDate(viewedDate);
+
+  if (!validViewedDate) {
+    return NextResponse.json(
+      { error: "Invalid viewedDate format" },
+      { status: 400 }
+    );
+  }
 
   try {
     const newMovie = await prisma.movie.create({
       data: {
         title,
-        director,
-        releaseDate: validReleaseDate ? new Date(validReleaseDate) : null,
-        imageUrl,
-        description,
-        genre,
-        viewedDate: validViewedDate ? new Date(validViewedDate) : null,
+        director: director ? director : "",
+        releaseDate: validReleaseDate ? new Date(validReleaseDate) : "",
+        imageUrl: imageUrl ? imageUrl : "",
+        viewedDate: new Date(validViewedDate),
       },
     });
 
