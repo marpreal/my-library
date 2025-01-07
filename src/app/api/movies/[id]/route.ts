@@ -23,8 +23,6 @@ export async function GET(
         releaseDate: true,
         imageUrl: true,
         viewedDate: true,
-        description: true,
-        genre: true,
       },
     });
 
@@ -36,7 +34,7 @@ export async function GET(
   } catch (error) {
     console.error("Error fetching movie:", (error as Error).message);
     return NextResponse.json(
-      { error: "Error fetching movie" },
+      { error: (error as Error).message || "Error fetching movie" },
       { status: 500 }
     );
   }
@@ -63,7 +61,7 @@ export async function DELETE(
   } catch (error) {
     console.error("Error deleting movie:", (error as Error).message);
     return NextResponse.json(
-      { error: "Error deleting movie" },
+      { error: (error as Error).message || "Error deleting movie" },
       { status: 500 }
     );
   }
@@ -74,10 +72,16 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { title, director, releaseDate, imageUrl, description, genre } =
-    await request.json();
+  const { title, director, releaseDate, imageUrl } = await request.json();
 
-  let formattedReleaseDate = null;
+  if (!id || !title) {
+    return NextResponse.json(
+      { error: "ID and title are required" },
+      { status: 400 }
+    );
+  }
+
+  let formattedReleaseDate: string | null = null;
   if (releaseDate) {
     try {
       formattedReleaseDate = new Date(releaseDate).toISOString();
@@ -92,12 +96,8 @@ export async function PATCH(
       data: {
         title,
         director: director || null,
-        releaseDate: formattedReleaseDate
-          ? new Date(formattedReleaseDate)
-          : null,
+        releaseDate: formattedReleaseDate ? new Date(formattedReleaseDate) : null,
         imageUrl,
-        description,
-        genre,
       },
     });
 
@@ -105,7 +105,7 @@ export async function PATCH(
   } catch (error) {
     console.error("Error updating movie:", (error as Error).message);
     return NextResponse.json(
-      { error: "Error updating movie" },
+      { error: (error as Error).message || "Error updating movie" },
       { status: 500 }
     );
   }
