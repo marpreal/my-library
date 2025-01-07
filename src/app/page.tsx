@@ -14,7 +14,7 @@ export default function Home() {
         </h1>
 
         <p className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
-          Like BookReads but with timeless elegance.
+          Like BookReads but better.
         </p>
         <div className="flex justify-center gap-6">
           <Link

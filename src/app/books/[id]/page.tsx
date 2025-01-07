@@ -164,7 +164,7 @@ export default function BookDetailPage() {
       </button>
 
       <div
-        className="bg-white/90 p-10 rounded-xl shadow-lg max-w-3xl w-full border border-[rgba(224,178,26,0.7)] z-10"
+        className="bg-white/90 p-10 rounded-xl shadow-lg max-w-3xl w-full border border-[rgba(224,178,26,0.7)] z-10 mt-8 sm:mt-6"
         style={{
           backdropFilter: "blur(10px)",
         }}
