@@ -72,6 +72,13 @@ a:hover {
     margin-bottom: 1rem;
   }
 }
+
+@media (max-width: 640px) {
+  .backdrop-blur-md {
+    backdrop-filter: none;
+  }
+}
+
 .back-button {
   position: absolute;
   top: 16px;
