@@ -27,9 +27,19 @@ const nextConfig = {
         hostname: "via.placeholder.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "m.media-amazon.com",
+        pathname: "/images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "pics.filmaffinity.com",
+        pathname: "/**",
+      },
     ],
     minimumCacheTTL: 60,
-    deviceSizes: [50, 100, 200],
+    deviceSizes: [50, 100, 200, 300],
   },
 };
 

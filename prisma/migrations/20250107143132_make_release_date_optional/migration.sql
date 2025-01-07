@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Movie" ALTER COLUMN "director" DROP NOT NULL,
+ALTER COLUMN "releaseDate" DROP NOT NULL;

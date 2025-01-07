@@ -7,6 +7,7 @@ import BookModal from "./BooksModal";
 import { Book } from "./types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Image from "next/image";
 
 export default function BooksPage() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -330,9 +331,11 @@ export default function BooksPage() {
             >
               {book.imageUrl && (
                 <div className="relative mb-4">
-                  <img
+                  <Image
                     src={book.imageUrl}
                     alt={`${book.title} cover`}
+                    width={160}
+                    height={200}
                     className="w-full max-h-40 object-contain rounded-lg"
                   />
                 </div>
