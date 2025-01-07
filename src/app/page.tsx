@@ -16,16 +16,26 @@ export default function Home() {
     const handleWheel = (event: WheelEvent) => {
       event.preventDefault();
     };
+    const handleTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+    };
+
     window.addEventListener("wheel", handleWheel, { passive: false });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
 
     return () => {
       window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchmove", handleTouchMove);
     };
   }, []);
 
   return (
     <div>
-      <nav className="fixed top-0 left-0 w-full bg-brown-800 text-gold-500 backdrop-blur-md shadow-md z-50">
+      <nav
+        className="fixed top-0 left-0 w-full bg-brown-800 text-gold-500 shadow-md z-50 pointer-events-auto"
+        style={{ height: "4rem", overflow: "hidden" }}
+      >
+        {" "}
         <div className="max-w-7xl mx-auto px-4 py-2 flex justify-center gap-8">
           <button
             onClick={() => scrollToSection("books")}
@@ -53,6 +63,7 @@ export default function Home() {
           </button>
         </div>
       </nav>
+
       <div
         id="books"
         className="h-screen flex items-center justify-center bg-center bg-cover relative"
