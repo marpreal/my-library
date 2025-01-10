@@ -10,12 +10,12 @@ export async function GET(
   const { id } = await params;
 
   if (!id) {
-    return NextResponse.json({ error: "Book ID is required" }, { status: 400 });
+    return NextResponse.json({ error: "Movie ID is required" }, { status: 400 });
   }
 
   try {
-    const reviews = await prisma.review.findMany({
-      where: { bookId: parseInt(id, 10) },
+    const reviews = await prisma.movieReview.findMany({
+      where: { movieId: parseInt(id, 10) },
       orderBy: { createdAt: "desc" },
     });
 
@@ -38,15 +38,15 @@ export async function POST(
 
   if (!id || !review || rating == null) {
     return NextResponse.json(
-      { error: "Book ID, review text, and rating are required" },
+      { error: "Movie ID, review text, and rating are required" },
       { status: 400 }
     );
   }
 
   try {
-    const newReview = await prisma.review.create({
+    const newReview = await prisma.movieReview.create({
       data: {
-        bookId: parseInt(id, 10),
+        movieId: parseInt(id, 10),
         review,
         rating,
       },
@@ -73,14 +73,14 @@ export async function PATCH(
     return NextResponse.json(
       {
         error:
-          "Book ID, review ID, and at least one field to update are required",
+          "Movie ID, review ID, and at least one field to update are required",
       },
       { status: 400 }
     );
   }
 
   try {
-    const updatedReview = await prisma.review.update({
+    const updatedReview = await prisma.movieReview.update({
       where: { id: parseInt(reviewId, 10) },
       data: {
         ...(review && { review }),
@@ -107,13 +107,13 @@ export async function DELETE(
 
   if (!id || !reviewId) {
     return NextResponse.json(
-      { error: "Book ID and review ID are required" },
+      { error: "Movie ID and review ID are required" },
       { status: 400 }
     );
   }
 
   try {
-    await prisma.review.delete({
+    await prisma.movieReview.delete({
       where: { id: parseInt(reviewId, 10) },
     });
 
