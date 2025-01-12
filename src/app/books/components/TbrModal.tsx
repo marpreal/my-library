@@ -18,7 +18,7 @@ export default function TbrModal({
   const [tbrBooks, setTbrBooks] = useState<TbrBook[]>([]);
   const [newTbrBook, setNewTbrBook] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3; // Maximum 3 books per page
+  const itemsPerPage = 3;
 
   useEffect(() => {
     const fetchTbrBooks = async () => {

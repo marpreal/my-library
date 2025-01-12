@@ -53,3 +53,12 @@ model Movie {
   viewedDate  DateTime
   reviews     MovieReview[]
 }
+
+model Recipe {
+  id          Int      @id @default(autoincrement())
+  title       String
+  category    String
+  description String?
+  ingredients String[] 
+  createdAt   DateTime @default(now())
+}

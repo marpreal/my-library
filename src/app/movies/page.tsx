@@ -187,7 +187,7 @@ export default function MoviesPage() {
   const handleMovieProcessed = async () => {
     setIsProcessing(true);
     try {
-      await fetchMovies(); // Vuelve a obtener todas las películas
+      await fetchMovies();
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error processing movie:", error);
