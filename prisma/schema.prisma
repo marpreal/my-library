@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,30 +10,36 @@ datasource db {
 model Review {
   id        Int      @id @default(autoincrement())
   bookId    Int
-  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   review    String
   rating    Int
   createdAt DateTime @default(now())
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
 }
 
 model Book {
   id          Int      @id @default(autoincrement())
-  title       String
   author      String
   date        DateTime
+  title       String
   imageUrl    String?
   description String?
   publisher   String?
   reviews     Review[]
 }
 
+model TBRBook {
+  id      Int      @id @default(autoincrement())
+  title   String
+  addedAt DateTime @default(now())
+}
+
 model MovieReview {
   id        Int      @id @default(autoincrement())
   movieId   Int
-  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
   review    String
   rating    Int
   createdAt DateTime @default(now())
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
 }
 
 model Movie {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Roboto } from "next/font/google";
+import { Playfair_Display, Roboto, Kalam, Tangerine } from "next/font/google";
 import "./globals.css";
 
 const playfairDisplay = Playfair_Display({
@@ -13,6 +13,20 @@ const roboto = Roboto({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const kalam = Kalam({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-handwritten",
+  display: "swap",
+});
+
+const tangerine = Tangerine({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-tangerine",
   display: "swap",
 });
 
@@ -31,7 +45,9 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.ico" />
       </head>
-      <body className={`${playfairDisplay.variable} ${roboto.variable} antialiased`}>
+      <body
+        className={`${playfairDisplay.variable} ${roboto.variable} ${kalam.variable} ${tangerine.variable} antialiased`}
+      >
         {children}
       </body>
     </html>

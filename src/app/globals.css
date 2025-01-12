@@ -105,3 +105,35 @@ a:hover {
     padding: 6px 12px;
   }
 }
+
+.modal-background {
+  background: var(--background);
+  background-image: url("/parchment-texture.jpeg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 1px solid var(--highlight);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 20px;
+  font-family: "Kalam", cursive;
+}
+
+.handwritten-font {
+  font-family: var(--font-tangerine);
+  font-size: 1.8rem;
+  color: black;
+}
+
+.tangerine-font {
+  font-size: 2rem;
+  color: #5a3d2b;
+}
+
+button:hover .text-red-500 {
+  color: #d62d20;
+}
+
+input {
+  background-color: #f7e7c3;
+}

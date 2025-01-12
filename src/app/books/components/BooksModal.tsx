@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Book, GoogleBook } from "./types";
+import { Book, GoogleBook } from "../types";
 import Image from "next/image";
-import { saveBook, searchBooks } from "../api/books/books";
+import { saveBook, searchBooks } from "../../api/books/books";
 
 export default function BookModal({
   onClose,

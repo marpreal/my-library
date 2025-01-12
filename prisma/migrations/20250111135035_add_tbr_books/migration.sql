@@ -1,0 +1,8 @@
+-- CreateTable
+CREATE TABLE "TBRBook" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "addedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TBRBook_pkey" PRIMARY KEY ("id")
+);
