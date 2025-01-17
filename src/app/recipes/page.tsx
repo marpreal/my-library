@@ -19,20 +19,30 @@ export default function RecipesPage() {
         backgroundPosition: "center",
       }}
     >
-      {/* Background overlay */}
       <div
         className="absolute inset-0 bg-black bg-opacity-60 z-0"
         style={{ backdropFilter: "blur(10px)" }}
       ></div>
 
-      {/* Page Title */}
+      <div className="absolute top-4 left-4 z-10">
+        <button
+          onClick={() => router.push("/")}
+          className="px-4 py-2 bg-gold text-highlight rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-105"
+          style={{
+            backgroundColor: "var(--gold)",
+            color: "white",
+          }}
+        >
+          Back to Menu
+        </button>
+      </div>
+
       <div className="relative z-10 text-center">
         <h1 className="text-6xl font-extrabold text-[#f7e7c3] drop-shadow-lg tracking-wide mb-12">
           Recipes
         </h1>
       </div>
 
-      {/* Categories */}
       <div className="relative z-10 flex flex-col sm:flex-row gap-8 justify-center items-center mb-12 px-4">
         <CategoryCard
           title="Sweets"
@@ -63,7 +73,6 @@ export default function RecipesPage() {
         </button>
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
           <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-lg mx-4 relative">

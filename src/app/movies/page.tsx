@@ -96,32 +96,25 @@ export default function MoviesPage() {
     const matchesTitle = movie.title
       .toLowerCase()
       .includes(searchTitle.toLowerCase());
-    console.log("Filtering movies:", {
-      currentMonth,
-      currentYear,
-      selectedDates,
-      movies,
-      filteredMovies: movies.map((m) => ({
-        title: m.title,
-        viewedDate: m.viewedDate,
-        matches: {
-          title: m.title.toLowerCase().includes(searchTitle.toLowerCase()),
-          viewedDateRange:
-            selectedStartDate && selectedEndDate
-              ? movieViewedDate &&
-                movieViewedDate >= selectedStartDate &&
-                movieViewedDate <= selectedEndDate
-              : true,
-          monthAndYear:
-            movieViewedDate &&
-            movieViewedDate.getMonth() === currentMonth &&
-            movieViewedDate.getFullYear() === currentYear,
-        },
-      })),
-    });
 
     return matchesTitle && matchesViewedDateRange && matchesMonthAndYear;
   });
+
+  const moviesWatchedThisYear = movies.filter((movie) => {
+    const movieViewedDate = movie.viewedDate ? new Date(movie.viewedDate) : null;
+    return (
+      movieViewedDate && movieViewedDate.getFullYear() === currentYear
+    );
+  }).length;
+
+  const moviesWatchedThisMonth = movies.filter((movie) => {
+    const movieViewedDate = movie.viewedDate ? new Date(movie.viewedDate) : null;
+    return (
+      movieViewedDate &&
+      movieViewedDate.getMonth() === currentMonth &&
+      movieViewedDate.getFullYear() === currentYear
+    );
+  }).length;
 
   const handleToggleView = () => {
     setIsViewingYear((prev) => !prev);
@@ -240,6 +233,12 @@ export default function MoviesPage() {
         >
           Movies
         </h1>
+        <p className="text-lg sm:text-2xl mt-4 text-white">
+          Watched this year: {moviesWatchedThisYear}
+        </p>
+        <p className="text-lg sm:text-2xl mt-2 text-white">
+          Watched this month: {moviesWatchedThisMonth}
+        </p>
       </div>
       {(isProcessing || isDeleting) && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
