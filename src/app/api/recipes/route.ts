@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-// Fetch recipes by category or all recipes
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get("category");
@@ -30,7 +29,6 @@ export async function GET(request: Request) {
   }
 }
 
-// Add a new recipe
 export async function POST(request: Request) {
   try {
     const { title, category, description, ingredients } = await request.json();
@@ -55,10 +53,10 @@ export async function POST(request: Request) {
   }
 }
 
-// Edit a recipe
 export async function PUT(request: Request) {
   try {
-    const { id, title, category, description, ingredients } = await request.json();
+    const { id, title, category, description, ingredients } =
+      await request.json();
 
     if (!id || !title || !category || !ingredients || !ingredients.length) {
       return NextResponse.json(
@@ -81,7 +79,6 @@ export async function PUT(request: Request) {
   }
 }
 
-// Delete a recipe
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();

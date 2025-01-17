@@ -1,8 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+const TypedText = dynamic(() => import("./components/TypedText"), {
+  ssr: false,
+});
 export default function Home() {
   const [activeSection, setActiveSection] = useState("books");
 
@@ -35,7 +39,6 @@ export default function Home() {
         className="fixed top-0 left-0 w-full bg-brown-800 text-gold-500 shadow-md z-50 pointer-events-auto"
         style={{ height: "4rem", overflow: "hidden" }}
       >
-        {" "}
         <div className="max-w-7xl mx-auto px-4 py-2 flex justify-center gap-8">
           <button
             onClick={() => scrollToSection("books")}
@@ -67,17 +70,16 @@ export default function Home() {
       <div
         id="books"
         className="h-screen flex items-center justify-center bg-center bg-cover relative"
-        style={{
-          backgroundImage: "url('/background.jpg')",
-        }}
+        style={{ backgroundImage: "url('/background.jpg')" }}
       >
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h1 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
-            Marta&apos;s Library
+            <TypedText text="Marta's Library" delay={60} loop={false} />
           </h1>
-          <p className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
-            Like BookReads but better.
-          </p>
+          <div className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
+            <TypedText text="Like BookReads but better." delay={40} />
+          </div>
+
           <div className="flex justify-center gap-6">
             <Link
               href="/books"
@@ -87,6 +89,7 @@ export default function Home() {
             </Link>
           </div>
         </div>
+
         <div
           className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-white text-7xl cursor-pointer hover:scale-110 transition animate-pulse drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]"
           onClick={() => scrollToSection("movies")}
@@ -94,21 +97,22 @@ export default function Home() {
           ↓
         </div>
       </div>
-
       <div
         id="movies"
         className="h-screen flex items-center justify-center bg-center bg-cover relative"
-        style={{
-          backgroundImage: "url('/movies-background.jpg')",
-        }}
+        style={{ backgroundImage: "url('/movies-background.jpg')" }}
       >
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h2 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
-            Marta&apos;s Movie Collection
+            <TypedText
+              text="Marta's Movie Collection"
+              delay={60}
+              loop={false}
+            />
           </h2>
-          <p className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
-            A curated list of must-watch movies.
-          </p>
+          <div className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
+            <TypedText text="A curated list of must-watch movies." delay={40} />
+          </div>
           <div className="flex justify-center gap-6">
             <Link
               href="/movies"
@@ -131,21 +135,18 @@ export default function Home() {
           ↑
         </div>
       </div>
-
       <div
         id="recipes"
         className="h-screen flex items-center justify-center bg-center bg-cover relative"
-        style={{
-          backgroundImage: "url('/recipes-background.jpg')",
-        }}
+        style={{ backgroundImage: "url('/recipes-background.jpg')" }}
       >
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h2 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
-            Marta&apos;s Recipes
+            <TypedText text="Marta's Recipes" delay={60} loop={false} />
           </h2>
-          <p className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
-            Delicious recipes for every taste.
-          </p>
+          <div className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
+            <TypedText text="Delicious recipes for every taste." delay={40} />
+          </div>
           <div className="flex justify-center gap-6">
             <Link
               href="/recipes"

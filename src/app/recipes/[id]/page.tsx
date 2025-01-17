@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { use } from "react";
+import { useRouter } from "next/navigation";
 
 type Recipe = {
   id: number;
   title: string;
+  category: string; 
   description?: string;
   ingredients: string[];
 };
@@ -18,6 +20,7 @@ export default function RecipeDetailsPage({
   const resolvedParams = use(params);
   const { id } = resolvedParams;
 
+  const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -53,8 +56,26 @@ export default function RecipeDetailsPage({
     );
   }
 
+  const handleBackClick = () => {
+    if (recipe.category === "Sweets") {
+      router.push("/recipes/sweets");
+    } else if (recipe.category === "Salt Dishes") {
+      router.push("/recipes/salt-dishes");
+    } else if (recipe.category === "Snacks") {
+      router.push("/recipes/snacks");
+    } else {
+      router.push("/recipes"); 
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center py-10 bg-[#fff5e6]">
+      <button
+        onClick={handleBackClick}
+        className="mb-6 px-4 py-2 bg-[#DAA520] text-white rounded-lg shadow-md hover:bg-[#B8860B] transition font-semibold"
+      >
+        ← Back to {recipe.category}
+      </button>
       <h1 className="text-4xl font-bold text-[#83511e] mb-6">{recipe.title}</h1>
       <p className="text-lg text-gray-700 mb-6">{recipe.description}</p>
       <h2 className="text-2xl font-semibold text-[#83511e] mb-4">

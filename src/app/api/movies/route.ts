@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export async function GET() {
   try {
     const movies = await prisma.movie.findMany({
-      orderBy: { releaseDate: "desc" },
+      orderBy: { viewedDate: "desc" },
       select: {
         id: true,
         title: true,
@@ -15,6 +15,7 @@ export async function GET() {
         releaseDate: true,
         viewedDate: true,
         imageUrl: true,
+        createdAt: true,
       },
     });
     return NextResponse.json(movies, { status: 200 });

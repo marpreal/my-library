@@ -51,8 +51,13 @@ model Movie {
   description String?
   genre       String?
   viewedDate  DateTime
+
+  createdAt   DateTime @default(now())     
+  updatedAt   DateTime? @updatedAt
+
   reviews     MovieReview[]
 }
+
 
 model Recipe {
   id          Int      @id @default(autoincrement())
