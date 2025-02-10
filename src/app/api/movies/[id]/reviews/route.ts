@@ -10,7 +10,10 @@ export async function GET(
   const { id } = await params;
 
   if (!id) {
-    return NextResponse.json({ error: "Movie ID is required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Movie ID is required" },
+      { status: 400 }
+    );
   }
 
   try {
@@ -34,11 +37,11 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { review, rating } = await request.json();
+  const { review, rating, userId } = await request.json();
 
-  if (!id || !review || rating == null) {
+  if (!id || !review || rating == null || !userId) {
     return NextResponse.json(
-      { error: "Movie ID, review text, and rating are required" },
+      { error: "Movie ID, review text, rating, and user ID are required" },
       { status: 400 }
     );
   }
@@ -49,14 +52,15 @@ export async function POST(
         movieId: parseInt(id, 10),
         review,
         rating,
+        userId,
       },
     });
 
     return NextResponse.json(newReview, { status: 201 });
   } catch (error) {
-    console.error("Error creating review:", (error as Error).message);
+    console.error("❌ Error creating review:", (error as Error).message);
     return NextResponse.json(
-      { error: (error as Error).message || "Error creating review" },
+      { error: "Error creating review" },
       { status: 500 }
     );
   }
@@ -67,13 +71,13 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { reviewId, review, rating } = await request.json();
+  const { reviewId, review, rating, userId } = await request.json();
 
-  if (!id || !reviewId || (!review && rating == null)) {
+  if (!id || !reviewId || !userId || (!review && rating == null)) {
     return NextResponse.json(
       {
         error:
-          "Movie ID, review ID, and at least one field to update are required",
+          "Movie ID, review ID, user ID, and at least one field to update are required",
       },
       { status: 400 }
     );
@@ -85,14 +89,15 @@ export async function PATCH(
       data: {
         ...(review && { review }),
         ...(rating != null && { rating }),
+        userId, 
       },
     });
 
     return NextResponse.json(updatedReview, { status: 200 });
   } catch (error) {
-    console.error("Error updating review:", (error as Error).message);
+    console.error("❌ Error updating review:", (error as Error).message);
     return NextResponse.json(
-      { error: (error as Error).message || "Error updating review" },
+      { error: "Error updating review" },
       { status: 500 }
     );
   }

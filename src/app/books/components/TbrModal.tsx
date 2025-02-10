@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { FaTrashAlt } from "react-icons/fa";
 
 type TbrBook = {
   id: number;
   title: string;
+  userId: string;
 };
 
 export default function TbrModal({
@@ -15,26 +17,40 @@ export default function TbrModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
   const [tbrBooks, setTbrBooks] = useState<TbrBook[]>([]);
   const [newTbrBook, setNewTbrBook] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
 
   useEffect(() => {
+    if (!userId) {
+      console.error("❌ User ID is missing in session");
+      return;
+    }
+  
+  
     const fetchTbrBooks = async () => {
       try {
-        const response = await fetch("/api/books/tbr");
-        if (!response.ok) throw new Error("Failed to fetch TBR books");
-        const data: TbrBook[] = await response.json();
+        const response = await fetch(`/api/books/tbr?userId=${userId}`);
+  
+        if (!response.ok) {
+          console.error("❌ API responded with status", response.status);
+          return;
+        }
+  
+        const data = await response.json();
         setTbrBooks(data);
       } catch (error) {
-        const err = error as Error;
-        console.error("Error fetching TBR books:", err.message);
+        console.error("❌ Error fetching TBR books:", error);
       }
     };
-
+  
     fetchTbrBooks();
-  }, []);
+  }, [userId]);
+  
 
   const addTbrBook = async () => {
     if (!newTbrBook.trim()) {
@@ -42,36 +58,50 @@ export default function TbrModal({
       return;
     }
 
+    if (!userId) {
+      alert("You must be logged in to add a TBR book.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/books/tbr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTbrBook.trim() }),
+        body: JSON.stringify({ title: newTbrBook.trim(), userId }),
       });
 
-      if (!response.ok) throw new Error("Failed to add book");
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to add book:", errorData);
+        alert(errorData.error || "Failed to add book");
+        return;
+      }
+
       const addedBook: TbrBook = await response.json();
       setTbrBooks((prev) => [...prev, addedBook]);
       setNewTbrBook("");
     } catch (error) {
-      const err = error as Error;
-      console.error("Error adding TBR book:", err.message);
+      console.error("Error adding TBR book:", error);
     }
   };
 
   const removeTbrBook = async (id: number) => {
+    if (!userId) {
+      alert("You must be logged in to remove a TBR book.");
+      return;
+    }
+
     try {
       const response = await fetch("/api/books/tbr", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id, userId }),
       });
 
       if (!response.ok) throw new Error("Failed to remove book");
       setTbrBooks((prev) => prev.filter((book) => book.id !== id));
     } catch (error) {
-      const err = error as Error;
-      console.error("Error removing TBR book:", err.message);
+      console.error("Error removing TBR book:", error);
     }
   };
 
@@ -96,7 +126,6 @@ export default function TbrModal({
         >
           ✖
         </button>
-        {/* Added top margin */}
         <h2 className="mt-6 mb-4 text-2xl font-bold font-serif text-[#5a3d2b] px-2 py-1 shadow-md text-center">
           TBR Notes
         </h2>

@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 type Recipe = {
   id: number;
   title: string;
-  category: string; 
+  category: string;
   description?: string;
   ingredients: string[];
 };
@@ -64,12 +64,12 @@ export default function RecipeDetailsPage({
     } else if (recipe.category === "Snacks") {
       router.push("/recipes/snacks");
     } else {
-      router.push("/recipes"); 
+      router.push("/recipes");
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10 bg-[#fff5e6]">
+    <div className="min-h-screen flex flex-col items-center py-10 px-6 sm:px-12 bg-[#fff5e6]">
       <button
         onClick={handleBackClick}
         className="mb-6 px-4 py-2 bg-[#DAA520] text-white rounded-lg shadow-md hover:bg-[#B8860B] transition font-semibold"
@@ -77,7 +77,17 @@ export default function RecipeDetailsPage({
         ← Back to {recipe.category}
       </button>
       <h1 className="text-4xl font-bold text-[#83511e] mb-6">{recipe.title}</h1>
-      <p className="text-lg text-gray-700 mb-6">{recipe.description}</p>
+      {recipe.description && (
+        <p className="text-lg text-gray-700 mb-6">
+          {recipe.description.split("\n").map((line, index) => (
+            <span key={index}>
+              {line}
+              <br />
+            </span>
+          ))}
+        </p>
+      )}
+
       <h2 className="text-2xl font-semibold text-[#83511e] mb-4">
         Ingredients
       </h2>

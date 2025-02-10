@@ -4,6 +4,7 @@ type SaveBookResponse = {
   author: string;
   date: string;
   imageUrl: string;
+  userId: string;
 };
 
 type GoogleBook = {
@@ -18,28 +19,45 @@ type GoogleBook = {
 };
 
 export const saveBook = async (
-  book: { title: string; author: string; date: string; imageUrl: string },
+  book: {
+    title: string;
+    author: string;
+    date: string;
+    imageUrl: string;
+    userId: string;
+  },
   bookId?: string
 ): Promise<SaveBookResponse> => {
-  if (!book.title || !book.author || !book.date) {
-    throw new Error("Missing required fields: title, author, or date");
+  if (!book.title || !book.author || !book.date || !book.userId) {
+    throw new Error(
+      "🚨 Missing required fields: title, author, date, or userId"
+    );
   }
 
   const method = bookId ? "PATCH" : "POST";
   const url = bookId ? `/api/books/${bookId}` : "/api/books";
 
-  const response = await fetch(url, {
-    method,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(book),
-  });
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(book),
+    });
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Unknown error");
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`❌ API responded with status ${response.status}`);
+      console.error("❌ API Response Body:", text);
+      throw new Error(`API error: ${text}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("❌ Error in saveBook:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Unknown error in saveBook"
+    );
   }
-
-  return await response.json();
 };
 
 export const searchBooks = async (query: string): Promise<GoogleBook[]> => {

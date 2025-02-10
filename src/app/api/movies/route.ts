@@ -35,17 +35,19 @@ export async function POST(request: Request) {
     releaseDate,
     imageUrl,
     viewedDate,
+    userId,
   }: {
     title: string;
     director?: string;
     releaseDate?: string;
     imageUrl?: string;
     viewedDate: string;
+    userId: string;
   } = await request.json();
 
-  if (!title || !viewedDate) {
+  if (!title || !viewedDate || !userId) {
     return NextResponse.json(
-      { error: "Title and viewedDate are required" },
+      { error: "Title, viewedDate, and userId are required" },
       { status: 400 }
     );
   }
@@ -66,16 +68,17 @@ export async function POST(request: Request) {
     const newMovie = await prisma.movie.create({
       data: {
         title,
-        director: director ? director : "",
-        releaseDate: validReleaseDate ? new Date(validReleaseDate) : "",
-        imageUrl: imageUrl ? imageUrl : "",
+        director: director ?? "",
+        releaseDate: validReleaseDate ? new Date(validReleaseDate) : null,
+        imageUrl: imageUrl ?? null,
         viewedDate: new Date(validViewedDate),
+        userId,
       },
     });
 
     return NextResponse.json(newMovie, { status: 201 });
   } catch (error) {
-    console.error("Error creating movie:", error);
+    console.error("❌ Error creating movie:", error);
     return NextResponse.json(
       { error: "Error creating movie" },
       { status: 500 }

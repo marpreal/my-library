@@ -55,7 +55,11 @@ export default function SnacksPage() {
                 {recipe.title}
               </h2>
               {recipe.description && (
-                <p className="text-gray-700 mb-4">{recipe.description}</p>
+                <ul className="text-gray-700 mb-4 list-disc list-inside">
+                  {recipe.description.split("\n").map((line, index) => (
+                    <li key={index}>{line}</li>
+                  ))}
+                </ul>
               )}
             </div>
           ))}

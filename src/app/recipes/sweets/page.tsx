@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type Recipe = {
   id: number;
@@ -11,11 +12,20 @@ type Recipe = {
 };
 
 export default function SweetsPage() {
+  const { data: session, status } = useSession();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.push("/login");
+
+      return;
+    }
+
     const fetchRecipes = async () => {
       try {
         setIsLoading(true);
@@ -35,11 +45,21 @@ export default function SweetsPage() {
     };
 
     fetchRecipes();
-  }, []);
+  }, [session, status, router]);
+
+  if (status === "loading") {
+    return <div>Loading session...</div>;
+  }
+
+  if (!session) {
+    return <div>Please log in to view recipes.</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center py-10 bg-[#fff5e6]">
-      <h1 className="text-4xl font-bold text-[#83511e] mb-10">Sweets Recipes</h1>
+      <h1 className="text-4xl font-bold text-[#83511e] mb-10">
+        Sweets Recipes
+      </h1>
 
       {isLoading ? (
         <p className="text-xl text-gray-600">Loading recipes...</p>
@@ -55,7 +75,11 @@ export default function SweetsPage() {
                 {recipe.title}
               </h2>
               {recipe.description && (
-                <p className="text-gray-700 mb-4">{recipe.description}</p>
+                <ul className="text-gray-700 mb-4 list-disc list-inside">
+                  {recipe.description.split("\n").map((line, index) => (
+                    <li key={index}>{line}</li>
+                  ))}
+                </ul>
               )}
             </div>
           ))}

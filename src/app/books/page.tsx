@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   BookCard,
@@ -15,6 +16,10 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function BooksPage() {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const router = useRouter();
+
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,7 +33,6 @@ export default function BooksPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isViewingYear, setIsViewingYear] = useState(false);
-  const router = useRouter();
   const [isTbrModalOpen, setIsTbrModalOpen] = useState(false);
 
   const handleDateChange = (dates: [Date | null, Date | null]) => {
@@ -58,26 +62,37 @@ export default function BooksPage() {
   };
 
   useEffect(() => {
+    if (!userId) return; 
+
     const fetchBooks = async () => {
+      if (!userId) {
+        console.warn("⚠️ No userId provided, skipping fetch.");
+        return;
+      }
+    
       setIsLoading(true);
       try {
-        const response = await fetch("/api/books");
-        if (response.ok) {
-          const data: Book[] = await response.json();
-          setBooks(data);
-        } else {
-          console.error("Error fetching books");
+        const response = await fetch(`/api/books?userId=${userId}`);
+
+        if (!response.ok) {
+          console.error(`❌ API responded with status ${response.status}`);
+          const errorData = await response.json();
+          console.error("❌ API Error Details:", errorData);
+          return;
         }
+    
+        const data: Book[] = await response.json();
+        setBooks(data);
       } catch (error) {
-        console.error("Error:", error);
+        console.error("❌ Error fetching books:", error);
       } finally {
         setIsLoading(false);
       }
     };
+    
 
     fetchBooks();
-  }, []);
-
+  }, [userId]);
   const filteredBooks = books.filter((book) => {
     const bookDate = new Date(book.date);
     const matchesTitle = book.title
@@ -105,10 +120,13 @@ export default function BooksPage() {
   const handleEditBook = async (id: number) => {
     try {
       const response = await fetch(`/api/books/${id}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch book details");
-      }
+      if (!response.ok) throw new Error("Failed to fetch book details");
+
       const book = await response.json();
+      if (book.userId !== userId) {
+        alert("You can only edit your own books.");
+        return;
+      }
       setBookToEdit(book);
       setIsModalOpen(true);
     } catch (error) {
@@ -119,7 +137,12 @@ export default function BooksPage() {
   const handleDeleteBook = async (id: number) => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/books/${id}`, { method: "DELETE" });
+      const response = await fetch(`/api/books/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
       if (response.ok) {
         setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
       } else {
@@ -147,6 +170,14 @@ export default function BooksPage() {
       setIsProcessing(false);
     }
   };
+
+  if (!session) {
+    return (
+      <p className="text-center text-lg text-red-500">
+        You must be logged in to view your books.
+      </p>
+    );
+  }
 
   const handleOpenTbrModal = () => setIsTbrModalOpen(true);
   const handleCloseTbrModal = () => setIsTbrModalOpen(false);

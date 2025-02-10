@@ -7,13 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Review {
-  id        Int      @id @default(autoincrement())
-  bookId    Int
-  review    String
-  rating    Int
-  createdAt DateTime @default(now())
-  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+model User {
+  id           String   @id @default(uuid())  
+  name         String?
+  email        String   @unique
+  image        String?
+  createdAt    DateTime @default(now())
+  books        Book[]   
+  movies       Movie[]
+  movieReviews MovieReview[]
+  recipes      Recipe[]
+  reviews      Review[]
+  tbrBooks     TBRBook[]
 }
 
 model Book {
@@ -24,13 +29,46 @@ model Book {
   imageUrl    String?
   description String?
   publisher   String?
+  createdAt   DateTime @default(now())
+  userId  String   @map("userId")
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews     Review[]
+}
+
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  bookId    Int
+  review    String
+  rating    Int
+  createdAt DateTime @default(now())
+  userId    String   @map("userId")
+  book      Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model TBRBook {
   id      Int      @id @default(autoincrement())
   title   String
   addedAt DateTime @default(now())
+  userId  String   @map("userId")
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Movie {
+  id          Int      @id @default(autoincrement())
+  title       String
+  director    String?
+  releaseDate DateTime?
+  imageUrl    String?
+  description String?
+  genre       String?
+  viewedDate  DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  userId      String    @map("userId")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviews     MovieReview[]
 }
 
 model MovieReview {
@@ -39,31 +77,18 @@ model MovieReview {
   review    String
   rating    Int
   createdAt DateTime @default(now())
+  userId    String   @map("userId")
   movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-model Movie {
-  id          Int           @id @default(autoincrement())
-  title       String
-  director    String?
-  releaseDate DateTime?
-  imageUrl    String?
-  description String?
-  genre       String?
-  viewedDate  DateTime
-
-  createdAt   DateTime @default(now())     
-  updatedAt   DateTime? @updatedAt
-
-  reviews     MovieReview[]
-}
-
 
 model Recipe {
   id          Int      @id @default(autoincrement())
   title       String
   category    String
   description String?
-  ingredients String[] 
   createdAt   DateTime @default(now())
+  ingredients String[]
+  userId      String   @map("userId")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

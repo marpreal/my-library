@@ -3,20 +3,34 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    console.log("Starting GET request for TBR books...");
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      console.error("❌ Missing userId in query params!");
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
     const tbrBooks = await prisma.tBRBook.findMany({
+      where: { userId },
       orderBy: { addedAt: "desc" },
       select: { id: true, title: true },
     });
-    console.log("Fetched TBR books successfully:", tbrBooks);
+
     return NextResponse.json(tbrBooks, { status: 200 });
   } catch (error) {
-    const err = error as Error;
-    console.error("Error fetching TBR books:", err.message, err.stack);
+    console.error("❌ API Error fetching TBR books:", error);
+
     return NextResponse.json(
-      { error: "Error fetching TBR books", details: err.message },
+      {
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -24,23 +38,33 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { title } = await request.json();
-    console.log("Received title:", title);
+    const { title, userId } = await request.json();
 
     if (!title || title.trim() === "") {
-      console.error("Validation error: Title is required");
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
+    if (!userId) {
+      console.error("❌ Missing userId in request body!");
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
     const newTbrBook = await prisma.tBRBook.create({
-      data: { title },
+      data: { title, userId },
     });
+
     return NextResponse.json(newTbrBook, { status: 201 });
   } catch (error) {
-    const err = error as Error;
-    console.error("Error adding TBR book:", err.message, err.stack);
+    console.error("❌ Error adding TBR book:", error);
+
     return NextResponse.json(
-      { error: "Error adding TBR book" },
+      {
+        error: "Internal Server Error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -48,26 +72,42 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { id } = await request.json();
-    console.log("Received ID:", id);
+    const { id, userId } = await request.json();
 
-    if (!id) {
-      console.error("Validation error: ID is required");
-      return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    if (!id || !userId) {
+      return NextResponse.json(
+        { error: "Book ID and User ID are required" },
+        { status: 400 }
+      );
+    }
+
+    const book = await prisma.tBRBook.findFirst({
+      where: { id, userId },
+    });
+
+    if (!book) {
+      return NextResponse.json(
+        { error: "Book not found or not owned by the user" },
+        { status: 403 }
+      );
     }
 
     await prisma.tBRBook.delete({
       where: { id },
     });
+
     return NextResponse.json(
       { message: "TBR book deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    const err = error as Error;
-    console.error("Error deleting TBR book:", err.message, err.stack);
+    console.error("❌ Error deleting TBR book:", error);
+
     return NextResponse.json(
-      { error: "Error deleting TBR book" },
+      {
+        error: "Error deleting TBR book",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

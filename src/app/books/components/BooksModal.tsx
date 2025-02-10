@@ -1,7 +1,10 @@
+"use client";
+
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { Book, GoogleBook } from "../types";
 import Image from "next/image";
-import { saveBook, searchBooks } from "../../api/books/books";
+import { saveBook, searchBooks } from "@/app/api/books/books";
 
 export default function BookModal({
   onClose,
@@ -12,6 +15,9 @@ export default function BookModal({
   onBookAdded: (book: Book) => void;
   bookToEdit?: Book | null;
 }) {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [date, setDate] = useState("");
@@ -37,16 +43,27 @@ export default function BookModal({
       return;
     }
 
-    const payload = { title, author, date, imageUrl };
-    console.log("Payload enviado al servidor:", payload);
+    if (!userId) {
+      alert("❌ You must be logged in to add or edit a book.");
+      console.error("❌ userId is undefined or null");
+      return;
+    }
+
+
+    const payload = { title, author, date, imageUrl, userId };
+
 
     try {
       const savedBook = await saveBook(payload, bookToEdit?.id?.toString());
       onBookAdded({ ...savedBook, id: Number(savedBook.id) });
       onClose();
     } catch (error) {
-      console.error("Error en saveBook:", error);
-      alert("Error saving book");
+      console.error("❌ Error in saveBook:", error);
+      alert(
+        `Error saving book: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -83,7 +100,6 @@ export default function BookModal({
     setImageUrl(volumeInfo.imageLinks?.thumbnail || "");
     setSearchResults([]);
   };
-
   const highlightText = (text: string, query: string) => {
     if (!query || !text) return text;
     const parts = text.split(new RegExp(`(${query})`, "gi"));
@@ -102,18 +118,15 @@ export default function BookModal({
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] flex items-center justify-center z-50">
       <div
         className="bg-white p-10 rounded-xl shadow-2xl max-w-lg w-full border border-[rgba(224,178,26,0.7)] backdrop-blur-md"
-        style={{
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
-        }}
+        style={{ backgroundColor: "rgba(255, 255, 255, 0.9)" }}
       >
         <h2
           className="text-3xl font-bold mb-6 text-center"
-          style={{
-            color: "var(--gold)",
-          }}
+          style={{ color: "var(--gold)" }}
         >
           {bookToEdit ? "Edit Book" : "Add a New Book"}
         </h2>
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <input
             type="text"
@@ -160,44 +173,46 @@ export default function BookModal({
               </li>
             ))}
           </ul>
+
           <input
             type="text"
             placeholder="Book Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-[rgba(224,178,26,0.7)] focus:outline-none focus:ring-2 focus:ring-[rgba(224,178,26,0.7)] bg-white text-gray-900 shadow-md"
+            className="px-4 py-3 rounded-lg border border-gray-300"
           />
           <input
             type="text"
             placeholder="Author Name"
             value={author}
             onChange={(e) => setAuthor(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-[rgba(224,178,26,0.7)] focus:outline-none focus:ring-2 focus:ring-[rgba(224,178,26,0.7)] bg-white text-gray-900 shadow-md"
+            className="px-4 py-3 rounded-lg border border-gray-300"
           />
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-[rgba(224,178,26,0.7)] focus:outline-none focus:ring-2 focus:ring-[rgba(224,178,26,0.7)] bg-white text-gray-900 shadow-md"
+            className="px-4 py-3 rounded-lg border border-gray-300"
           />
           <input
             type="text"
             placeholder="Image URL"
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
-            className="px-4 py-3 rounded-lg border border-[rgba(224,178,26,0.7)] focus:outline-none focus:ring-2 focus:ring-[rgba(224,178,26,0.7)] bg-white text-gray-900 shadow-md"
+            className="px-4 py-3 rounded-lg border border-gray-300"
           />
+
           <div className="flex justify-end gap-4">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-lg bg-[rgba(224,178,26,0.3)] text-[rgba(139,69,19,0.9)] hover:bg-[rgba(224,178,26,0.5)] transition shadow-md"
+              className="px-5 py-2 rounded-lg bg-gray-300 text-gray-800"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-lg bg-[rgba(224,178,26,0.9)] text-white hover:bg-[rgba(224,178,26,1)] transition shadow-md"
+              className="px-5 py-2 rounded-lg bg-gold text-white"
             >
               {bookToEdit ? "Save Changes" : "Add Book"}
             </button>

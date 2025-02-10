@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Roboto, Kalam, Tangerine } from "next/font/google";
 import "./globals.css";
+import SessionProvider from "./components/SessionProvider"; 
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -35,11 +36,7 @@ export const metadata: Metadata = {
   description: "Explore a timeless collection of books in style.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
@@ -48,7 +45,7 @@ export default function RootLayout({
       <body
         className={`${playfairDisplay.variable} ${roboto.variable} ${kalam.variable} ${tangerine.variable} antialiased`}
       >
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );

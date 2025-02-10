@@ -1,11 +1,21 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function RecipesPage() {
+  const { data: session, status } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  if (!session) {
+    return <div>You must be logged in to view recipes.</div>;
+  }
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -28,10 +38,7 @@ export default function RecipesPage() {
         <button
           onClick={() => router.push("/")}
           className="px-4 py-2 bg-gold text-highlight rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-105"
-          style={{
-            backgroundColor: "var(--gold)",
-            color: "white",
-          }}
+          style={{ backgroundColor: "var(--gold)", color: "white" }}
         >
           Back to Menu
         </button>
@@ -82,9 +89,7 @@ export default function RecipesPage() {
             >
               ✖
             </button>
-            <h2 className="text-2xl font-bold mb-4 text-[#83511e]">
-              Add Recipe
-            </h2>
+            <h2 className="text-2xl font-bold mb-4 text-[#83511e]">Add Recipe</h2>
             <AddRecipeForm onClose={closeModal} />
           </div>
         </div>
@@ -111,9 +116,7 @@ function CategoryCard({
     >
       <div
         className="h-48 bg-cover bg-center"
-        style={{
-          backgroundImage: `url('${imageUrl}')`,
-        }}
+        style={{ backgroundImage: `url('${imageUrl}')` }}
       ></div>
       <div className="p-4 text-center">
         <h3 className="text-3xl font-bold text-[#83511e] mb-2">{title}</h3>
@@ -155,11 +158,7 @@ function AddRecipeForm({ onClose }: { onClose: () => void }) {
       alert("Recipe added successfully!");
       onClose();
     } catch (error) {
-      if (error instanceof Error) {
-        console.error("Error adding recipe:", error.message);
-      } else {
-        console.error("Unexpected error:", error);
-      }
+      console.error("Error adding recipe:", error);
       alert("Failed to add recipe.");
     }
   };
