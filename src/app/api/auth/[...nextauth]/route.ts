@@ -1,11 +1,11 @@
-import NextAuth, { NextAuthOptions, User, Session, Account } from "next-auth";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 
 // ✅ Use Singleton for Prisma Client to avoid multiple instances
 const prisma = new PrismaClient();
 
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -15,8 +15,7 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 
   callbacks: {
-    // ✅ Save User to Database (Runs Only When Needed)
-    async signIn({ user }: { user: User }) {
+    async signIn({ user }) {
       if (!user?.email) {
         console.error("❌ No user email received");
         return false;
@@ -27,7 +26,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: user.email },
           update: {},
           create: {
-            id: user.id,
+            id: user.id, 
             name: user.name || "Anonymous",
             email: user.email,
             image: user.image || null,
@@ -41,21 +40,13 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    // ✅ Attach User ID to the Session
-    async session({
-      session,
-      token,
-    }: {
-      session: Session;
-      token: { sub?: string };
-    }) {
+    async session({ session, token }) {
       if (token.sub) {
         session.user.id = token.sub;
       }
       return session;
     },
   },
-};
+});
 
-const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

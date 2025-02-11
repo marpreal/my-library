@@ -1,25 +1,29 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      console.error("❌ Missing userId in request");
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
     }
 
-    const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
     const id = searchParams.get("id");
 
     if (id) {
       const recipe = await prisma.recipe.findFirst({
-        where: { id: Number(id), userId: session.user.id },
+        where: { id: Number(id), userId },
       });
+
       if (!recipe) {
         return NextResponse.json(
           { error: "Recipe not found or unauthorized" },
@@ -31,11 +35,12 @@ export async function GET(request: Request) {
 
     const recipes = await prisma.recipe.findMany({
       where: {
-        userId: session.user.id,
+        userId,
         ...(category ? { category } : {}),
       },
       orderBy: { createdAt: "desc" },
     });
+
     return NextResponse.json(recipes, { status: 200 });
   } catch (error) {
     console.error("GET /api/recipes error:", error);
@@ -48,12 +53,16 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
+    const { title, category, description, ingredients, userId } =
+      await request.json();
 
-    const { title, category, description, ingredients } = await request.json();
+    if (!userId) {
+      console.error("❌ Missing userId in request.");
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
 
     if (!title || !category || !ingredients || !ingredients.length) {
       return NextResponse.json(
@@ -62,13 +71,20 @@ export async function POST(request: Request) {
       );
     }
 
+    const userExists = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!userExists) {
+      console.error("❌ User not found in database.");
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     const newRecipe = await prisma.recipe.create({
       data: {
         title,
         category,
         description,
         ingredients,
-        userId: session.user.id,
+        userId,
       },
     });
 
@@ -84,12 +100,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    const { id, title, category, description, ingredients } =
+    const { id, title, category, description, ingredients, userId } =
       await request.json();
 
     if (!id || !title || !category || !ingredients || !ingredients.length) {
@@ -99,9 +110,18 @@ export async function PUT(request: Request) {
       );
     }
 
+    if (!userId) {
+      console.error("❌ Missing userId in request.");
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
     const recipe = await prisma.recipe.findFirst({
-      where: { id: Number(id), userId: session.user.id },
+      where: { id: Number(id), userId },
     });
+
     if (!recipe) {
       return NextResponse.json(
         { error: "Recipe not found or unauthorized" },
@@ -126,23 +146,19 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
+    const { id, userId } = await request.json();
 
-    const { id } = await request.json();
-
-    if (!id) {
+    if (!id || !userId) {
       return NextResponse.json(
-        { error: "Recipe ID is required" },
+        { error: "Recipe ID and userId are required" },
         { status: 400 }
       );
     }
 
     const recipe = await prisma.recipe.findFirst({
-      where: { id: Number(id), userId: session.user.id },
+      where: { id: Number(id), userId },
     });
+
     if (!recipe) {
       return NextResponse.json(
         { error: "Recipe not found or unauthorized" },
