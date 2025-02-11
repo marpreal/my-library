@@ -10,75 +10,61 @@ export async function GET(
   const { id } = await context.params;
 
   if (!id) {
-    return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    return NextResponse.json({ error: "Book ID is required" }, { status: 400 });
   }
 
   try {
-    const book = await prisma.book.findUnique({
-      where: { id: parseInt(id, 10) },
+    const reviews = await prisma.review.findMany({
+      where: { bookId: parseInt(id, 10) },
       select: {
         id: true,
-        title: true,
-        author: true,
-        date: true,
-        imageUrl: true,
+        review: true,
+        rating: true,
         userId: true,
       },
     });
 
-    if (!book) {
-      return NextResponse.json({ error: "Book not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(book, { status: 200 });
+    return NextResponse.json(reviews, { status: 200 });
   } catch (error) {
-    console.error("Error fetching book:", error);
-    return NextResponse.json({ error: "Error fetching book" }, { status: 500 });
+    console.error("Error fetching reviews:", error);
+    return NextResponse.json(
+      { error: "Error fetching reviews" },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(
+export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
-  const { userId } = await request.json();
+  const { review, rating, userId } = await request.json();
 
-  if (!id || !userId) {
+  if (!id || !review || rating === undefined || !userId) {
     return NextResponse.json(
-      { error: "ID and userId are required" },
+      { error: "Book ID, review, rating, and userId are required" },
       { status: 400 }
     );
   }
 
   try {
-    const book = await prisma.book.findUnique({
-      where: { id: parseInt(id, 10) },
-      select: { userId: true },
+    const newReview = await prisma.review.create({
+      data: {
+        bookId: parseInt(id, 10),
+        review,
+        rating,
+        userId,
+      },
     });
 
-    if (!book) {
-      return NextResponse.json({ error: "Book not found" }, { status: 404 });
-    }
-
-    if (book.userId !== userId) {
-      return NextResponse.json(
-        { error: "Unauthorized: You can only delete your own books" },
-        { status: 403 }
-      );
-    }
-
-    await prisma.book.delete({
-      where: { id: parseInt(id, 10) },
-    });
-
-    return NextResponse.json(
-      { message: "Book deleted successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json(newReview, { status: 201 });
   } catch (error) {
-    console.error("Error deleting book:", error);
-    return NextResponse.json({ error: "Error deleting book" }, { status: 500 });
+    console.error("Error creating review:", error);
+    return NextResponse.json(
+      { error: "Error creating review" },
+      { status: 500 }
+    );
   }
 }
 
@@ -87,45 +73,89 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
-  const { title, author, date, imageUrl, userId } = await request.json();
+  const { reviewId, review, rating, userId } = await request.json();
 
-  if (!id || !title || !author || !date || !userId) {
+  if (!id || !reviewId || !review || rating === undefined || !userId) {
     return NextResponse.json(
-      { error: "ID, title, author, date, and userId are required" },
+      { error: "Review ID, review, rating, and userId are required" },
       { status: 400 }
     );
   }
 
   try {
-    const book = await prisma.book.findUnique({
-      where: { id: parseInt(id, 10) },
+    const existingReview = await prisma.review.findUnique({
+      where: { id: reviewId },
       select: { userId: true },
     });
 
-    if (!book) {
-      return NextResponse.json({ error: "Book not found" }, { status: 404 });
+    if (!existingReview) {
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
     }
 
-    if (book.userId !== userId) {
+    if (existingReview.userId !== userId) {
       return NextResponse.json(
-        { error: "Unauthorized: You can only edit your own books" },
+        { error: "Unauthorized: You can only edit your own reviews" },
         { status: 403 }
       );
     }
 
-    const updatedBook = await prisma.book.update({
-      where: { id: parseInt(id, 10) },
-      data: {
-        title,
-        author,
-        date: new Date(date),
-        imageUrl,
-      },
+    const updatedReview = await prisma.review.update({
+      where: { id: reviewId },
+      data: { review, rating },
     });
 
-    return NextResponse.json(updatedBook, { status: 200 });
+    return NextResponse.json(updatedReview, { status: 200 });
   } catch (error) {
-    console.error("Error updating book:", error);
-    return NextResponse.json({ error: "Error updating book" }, { status: 500 });
+    console.error("Error updating review:", error);
+    return NextResponse.json(
+      { error: "Error updating review" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+  const { reviewId, userId } = await request.json();
+
+  if (!id || !reviewId || !userId) {
+    return NextResponse.json(
+      { error: "Review ID and userId are required" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const existingReview = await prisma.review.findUnique({
+      where: { id: reviewId },
+      select: { userId: true },
+    });
+
+    if (!existingReview) {
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    }
+
+    if (existingReview.userId !== userId) {
+      return NextResponse.json(
+        { error: "Unauthorized: You can only delete your own reviews" },
+        { status: 403 }
+      );
+    }
+
+    await prisma.review.delete({ where: { id: reviewId } });
+
+    return NextResponse.json(
+      { message: "Review deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return NextResponse.json(
+      { error: "Error deleting review" },
+      { status: 500 }
+    );
   }
 }

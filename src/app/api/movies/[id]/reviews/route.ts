@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
 
   if (!id) {
     return NextResponse.json(
@@ -22,9 +22,9 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(reviews || [], { status: 200 });
+    return NextResponse.json(reviews, { status: 200 });
   } catch (error) {
-    console.error("Error fetching reviews:", (error as Error).message);
+    console.error("❌ Error fetching reviews:", error);
     return NextResponse.json(
       { error: "Error fetching reviews" },
       { status: 500 }
@@ -34,9 +34,9 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
   const { review, rating, userId } = await request.json();
 
   if (!id || !review || rating == null || !userId) {
@@ -58,7 +58,7 @@ export async function POST(
 
     return NextResponse.json(newReview, { status: 201 });
   } catch (error) {
-    console.error("❌ Error creating review:", (error as Error).message);
+    console.error("❌ Error creating review:", error);
     return NextResponse.json(
       { error: "Error creating review" },
       { status: 500 }
@@ -68,9 +68,9 @@ export async function POST(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
+  const { id } = await context.params;
   const { reviewId, review, rating, userId } = await request.json();
 
   if (!id || !reviewId || !userId || (!review && rating == null)) {
@@ -84,18 +84,33 @@ export async function PATCH(
   }
 
   try {
+    const existingReview = await prisma.movieReview.findUnique({
+      where: { id: parseInt(reviewId, 10) },
+      select: { userId: true },
+    });
+
+    if (!existingReview) {
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    }
+
+    if (existingReview.userId !== userId) {
+      return NextResponse.json(
+        { error: "Unauthorized: You can only edit your own reviews" },
+        { status: 403 }
+      );
+    }
+
     const updatedReview = await prisma.movieReview.update({
       where: { id: parseInt(reviewId, 10) },
       data: {
         ...(review && { review }),
         ...(rating != null && { rating }),
-        userId, 
       },
     });
 
     return NextResponse.json(updatedReview, { status: 200 });
   } catch (error) {
-    console.error("❌ Error updating review:", (error as Error).message);
+    console.error("❌ Error updating review:", error);
     return NextResponse.json(
       { error: "Error updating review" },
       { status: 500 }
@@ -105,19 +120,31 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const { reviewId } = await request.json();
+  const { id } = await context.params;
+  const { reviewId, userId } = await request.json();
 
-  if (!id || !reviewId) {
+  if (!id || !reviewId || !userId) {
     return NextResponse.json(
-      { error: "Movie ID and review ID are required" },
+      { error: "Movie ID, review ID, and user ID are required" },
       { status: 400 }
     );
   }
 
   try {
+    const existingReview = await prisma.movieReview.findUnique({
+      where: { id: parseInt(reviewId, 10) },
+      select: { userId: true },
+    });
+
+    if (!existingReview || existingReview.userId !== userId) {
+      return NextResponse.json(
+        { error: "Unauthorized: You can only delete your own reviews" },
+        { status: 403 }
+      );
+    }
+
     await prisma.movieReview.delete({
       where: { id: parseInt(reviewId, 10) },
     });
@@ -127,9 +154,9 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting review:", (error as Error).message);
+    console.error("❌ Error deleting review:", error);
     return NextResponse.json(
-      { error: (error as Error).message || "Error deleting review" },
+      { error: "Error deleting review" },
       { status: 500 }
     );
   }

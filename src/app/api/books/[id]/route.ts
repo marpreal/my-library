@@ -17,13 +17,15 @@ export async function GET(
   try {
     const book = await prisma.book.findUnique({
       where: { id: parseInt(id, 10) },
-      select: {
-        id: true,
-        title: true,
-        author: true,
-        date: true,
-        imageUrl: true,
-        userId: true,
+      include: {
+        reviews: {
+          select: {
+            id: true,
+            review: true,
+            rating: true,
+            userId: true,
+          },
+        },
       },
     });
 

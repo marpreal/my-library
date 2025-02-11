@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import MoviesModal from "./MoviesModal";
+import MoviesModal from "./components/MoviesModal";
 import { Movie } from "./types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 export default function MoviesPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -24,6 +25,8 @@ export default function MoviesPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isViewingYear, setIsViewingYear] = useState(false);
   const router = useRouter();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
 
   const handleDateChange = (dates: [Date | null, Date | null]) => {
     setSelectedDates(dates);
@@ -49,8 +52,9 @@ export default function MoviesPage() {
 
   useEffect(() => {
     const fetchMovies = async () => {
+      if (!userId) return;
       try {
-        const response = await fetch("/api/movies");
+        const response = await fetch(`/api/movies?userId=${userId}`);
         if (response.ok) {
           const data: Movie[] = await response.json();
           setMovies(data);
@@ -65,7 +69,7 @@ export default function MoviesPage() {
     };
 
     fetchMovies();
-  }, []);
+  }, [userId]);
 
   const filteredMovies = movies.filter((movie) => {
     const movieViewedDate = movie.viewedDate
@@ -101,14 +105,16 @@ export default function MoviesPage() {
   });
 
   const moviesWatchedThisYear = movies.filter((movie) => {
-    const movieViewedDate = movie.viewedDate ? new Date(movie.viewedDate) : null;
-    return (
-      movieViewedDate && movieViewedDate.getFullYear() === currentYear
-    );
+    const movieViewedDate = movie.viewedDate
+      ? new Date(movie.viewedDate)
+      : null;
+    return movieViewedDate && movieViewedDate.getFullYear() === currentYear;
   }).length;
 
   const moviesWatchedThisMonth = movies.filter((movie) => {
-    const movieViewedDate = movie.viewedDate ? new Date(movie.viewedDate) : null;
+    const movieViewedDate = movie.viewedDate
+      ? new Date(movie.viewedDate)
+      : null;
     return (
       movieViewedDate &&
       movieViewedDate.getMonth() === currentMonth &&
@@ -146,6 +152,8 @@ export default function MoviesPage() {
     try {
       const response = await fetch(`/api/movies/${id}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
       });
       if (response.ok) {
         setMovies((prevMovies) =>
@@ -163,7 +171,7 @@ export default function MoviesPage() {
 
   const fetchMovies = async () => {
     try {
-      const response = await fetch("/api/movies");
+      const response = await fetch(`/api/movies?userId=${userId}`);
       if (response.ok) {
         const data: Movie[] = await response.json();
         setMovies(data);

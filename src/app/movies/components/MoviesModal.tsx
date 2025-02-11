@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Movie, SearchMovie } from "./types";
+import { Movie, SearchMovie } from "../types";
 import Image from "next/image";
-import { saveMovie, searchMovies } from "../api/movies/movies";
-import { validateAndFormatDate } from "./utils";
+import { saveMovie, searchMovies } from "../../api/movies/movies";
+import { validateAndFormatDate } from "../utils";
+import { useSession } from "next-auth/react";
 
 export default function MoviesModal({
   onClose,
@@ -13,6 +14,9 @@ export default function MoviesModal({
   onMovieAdded: () => void;
   movieToEdit?: Movie | null;
 }) {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+
   const [title, setTitle] = useState("");
   const [director, setDirector] = useState("");
   const [releaseDate, setReleaseDate] = useState("");
@@ -41,9 +45,14 @@ export default function MoviesModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!viewedDate || isNaN(new Date(viewedDate).getTime())) {
       alert("Please provide a valid viewed date in YYYY-MM-DD format.");
+      return;
+    }
+
+    if (!userId) {
+      alert("❌ User ID is missing. Please log in.");
+      console.error("❌ userId is undefined or null");
       return;
     }
 
@@ -53,6 +62,7 @@ export default function MoviesModal({
       releaseDate: releaseDate || "",
       imageUrl,
       viewedDate,
+      userId,
     };
 
     try {

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Book, Review } from "../types";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 
 export default function BookDetailPage() {
   const params = useParams();
@@ -13,6 +14,8 @@ export default function BookDetailPage() {
   const [rating, setRating] = useState(0);
   const [editingReviewId, setEditingReviewId] = useState<number | null>(null);
   const router = useRouter();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -46,47 +49,44 @@ export default function BookDetailPage() {
   }, [params?.id]);
 
   const handleSubmitReview = async () => {
+    if (!userId) {
+      alert("You must be logged in to leave a review.");
+      return;
+    }
+
     try {
       const bookId = params?.id;
-      if (!bookId) {
-        console.error("No book ID found for submitting review");
-        return;
-      }
-
-      const url = editingReviewId
-        ? `/api/books/${bookId}/reviews`
-        : `/api/books/${bookId}/reviews`;
-
-      const method = editingReviewId ? "PATCH" : "POST";
-
-      const response = await fetch(url, {
-        method,
+      const response = await fetch(`/api/books/${bookId}/reviews`, {
+        method: editingReviewId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reviewId: editingReviewId,
           review,
           rating,
+          userId,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(
-          editingReviewId ? "Failed to edit review" : "Failed to submit review"
-        );
+        throw new Error("Failed to submit review");
       }
 
-      alert(editingReviewId ? "Review edited!" : "Review submitted!");
+      const newReview = await response.json();
+
+      if (editingReviewId) {
+        setReviews((prevReviews) =>
+          prevReviews.map((r) => (r.id === editingReviewId ? newReview : r))
+        );
+      } else {
+        setReviews((prevReviews) => [newReview, ...prevReviews]);
+      }
+
+      alert("Review submitted!");
       setReview("");
       setRating(0);
       setEditingReviewId(null);
-
-      const updatedReviews = await fetch(`/api/books/${bookId}/reviews`);
-      if (updatedReviews.ok) {
-        setReviews(await updatedReviews.json());
-      }
     } catch (error) {
-      console.error("Error submitting/editing review:", error);
-      alert("Error submitting/editing review");
+      console.error("Error submitting review:", error);
     }
   };
 

@@ -4,6 +4,7 @@ type SaveMovieResponse = {
   director: string;
   releaseDate: string;
   imageUrl: string;
+  userId: string;
 };
 
 type OMDbMovie = {
@@ -20,18 +21,12 @@ export const saveMovie = async (
     releaseDate: string;
     imageUrl: string;
     viewedDate: string;
+    userId: string;
   },
   movieId?: string
 ): Promise<SaveMovieResponse> => {
-  if (
-    !movie.title ||
-    !movie.director ||
-    !movie.releaseDate ||
-    !movie.viewedDate
-  ) {
-    throw new Error(
-      "Missing required fields: title, director, releaseDate, or viewedDate"
-    );
+  if (!movie.title || !movie.viewedDate || !movie.userId) {
+    throw new Error("🚨 Missing required fields: title, date, or userId");
   }
 
   const method = movieId ? "PATCH" : "POST";

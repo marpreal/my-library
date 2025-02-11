@@ -2,7 +2,6 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 
-// ✅ Use Singleton for Prisma Client to avoid multiple instances
 const prisma = new PrismaClient();
 
 const handler = NextAuth({
@@ -10,6 +9,11 @@ const handler = NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          prompt: "select_account",
+        },
+      },
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
@@ -26,7 +30,7 @@ const handler = NextAuth({
           where: { email: user.email },
           update: {},
           create: {
-            id: user.id, 
+            id: user.id,
             name: user.name || "Anonymous",
             email: user.email,
             image: user.image || null,
