@@ -3,6 +3,7 @@ type SaveMovieResponse = {
   title: string;
   director: string;
   releaseDate: string;
+  viewedDate: string;
   imageUrl: string;
   userId: string;
 };
@@ -16,17 +17,18 @@ type OMDbMovie = {
 
 export const saveMovie = async (
   movie: {
+    id?: number;
     title: string;
-    director: string;
-    releaseDate: string;
-    imageUrl: string;
+    director?: string;
+    releaseDate?: string;
+    imageUrl?: string;
     viewedDate: string;
     userId: string;
   },
   movieId?: string
 ): Promise<SaveMovieResponse> => {
-  if (!movie.title || !movie.viewedDate || !movie.userId) {
-    throw new Error("🚨 Missing required fields: title, date, or userId");
+  if (!movieId) {
+    throw new Error("🚨 Missing movie ID for update.");
   }
 
   const method = movieId ? "PATCH" : "POST";
@@ -38,12 +40,13 @@ export const saveMovie = async (
     body: JSON.stringify(movie),
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    const error = (await response.json()) as { error: string };
-    throw new Error(error.error || "Unknown error");
+    throw new Error(data.error || "Unknown error");
   }
 
-  return (await response.json()) as SaveMovieResponse;
+  return data;
 };
 
 export const searchMovies = async (query: string): Promise<OMDbMovie[]> => {

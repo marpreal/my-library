@@ -88,7 +88,6 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ✅ Your existing sections remain untouched */}
       <div
         id="books"
         className="h-screen flex items-center justify-center bg-center bg-cover relative"

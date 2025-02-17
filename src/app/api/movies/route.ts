@@ -109,3 +109,59 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+  try {
+    const body = await request.json();
+
+    const { title, director, releaseDate, imageUrl, viewedDate, userId } = body;
+    const movieId = parseInt(id, 10);
+
+    if (!movieId || !userId) {
+      return NextResponse.json(
+        { error: "Movie ID and userId are required" },
+        { status: 400 }
+      );
+    }
+
+    const existingMovie = await prisma.movie.findUnique({
+      where: { id: movieId },
+    });
+
+    if (!existingMovie) {
+      return NextResponse.json({ error: "Movie not found" }, { status: 404 });
+    }
+
+    const updatedMovie = await prisma.movie.update({
+      where: { id: movieId },
+      data: {
+        title: title ?? existingMovie.title,
+        director: director ?? existingMovie.director,
+        releaseDate: releaseDate
+          ? new Date(releaseDate).toISOString()
+          : existingMovie.releaseDate
+          ? new Date(existingMovie.releaseDate).toISOString()
+          : null,
+        imageUrl: imageUrl ?? existingMovie.imageUrl,
+        viewedDate: viewedDate
+          ? new Date(viewedDate + "T00:00:00.000Z").toISOString()
+          : existingMovie.viewedDate
+          ? new Date(existingMovie.viewedDate).toISOString()
+          : existingMovie.viewedDate,
+        updatedAt: new Date().toISOString(),
+      },
+    });
+
+    return NextResponse.json(updatedMovie, { status: 200 });
+  } catch (error) {
+    console.error("❌ Error updating movie:", error);
+    return NextResponse.json(
+      { error: "Error updating movie" },
+      { status: 500 }
+    );
+  }
+}

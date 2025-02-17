@@ -155,7 +155,6 @@ export default function TbrModal({
           )}
         </ul>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-2 mb-4">
             {Array.from({ length: totalPages }, (_, index) => (

@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { use } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 type Recipe = {
   id: number;
@@ -24,27 +24,32 @@ export default function RecipeDetailsPage({
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id ?? "";
+
   useEffect(() => {
+    if (status === "loading") return;
+
     const fetchRecipe = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/recipes?id=${id}`);
+        const url = userId
+          ? `/api/recipes?id=${id}&userId=${userId}`
+          : `/api/recipes?id=${id}`;
+        const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch recipe");
+
         const data: Recipe = await response.json();
         setRecipe(data);
       } catch (error) {
-        if (error instanceof Error) {
-          console.error("Error fetching recipe:", error.message);
-        } else {
-          console.error("Unexpected error:", error);
-        }
+        console.error("Error fetching recipe:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchRecipe();
-  }, [id]);
+  }, [id, userId, status]);
 
   if (isLoading) {
     return <p className="text-center text-xl">Loading recipe...</p>;
@@ -57,15 +62,13 @@ export default function RecipeDetailsPage({
   }
 
   const handleBackClick = () => {
-    if (recipe.category === "Sweets") {
-      router.push("/recipes/sweets");
-    } else if (recipe.category === "Salt Dishes") {
-      router.push("/recipes/salt-dishes");
-    } else if (recipe.category === "Snacks") {
-      router.push("/recipes/snacks");
-    } else {
-      router.push("/recipes");
-    }
+    const categoryRoutes: Record<string, string> = {
+      Sweets: "/recipes/sweets",
+      "Salt Dishes": "/recipes/salt-dishes",
+      Snacks: "/recipes/snacks",
+    };
+
+    router.push(categoryRoutes[recipe.category] || "/recipes");
   };
 
   return (
@@ -76,6 +79,7 @@ export default function RecipeDetailsPage({
       >
         ← Back to {recipe.category}
       </button>
+
       <h1 className="text-4xl font-bold text-[#83511e] mb-6">{recipe.title}</h1>
       {recipe.description && (
         <p className="text-lg text-gray-700 mb-6">
