@@ -10,9 +10,28 @@ const TypedText = dynamic(() => import("./components/TypedText"), {
 });
 
 export default function Home() {
-  const { data: session } = useSession();
-  const userName = session?.user.name || "Your";
+  const { data: session, status, update } = useSession();
+  const [userName, setUserName] = useState("Your");
   const [activeSection, setActiveSection] = useState("books");
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.name) {
+      console.log("here", session?.user?.name);
+      setUserName(session.user.name);
+    }
+  }, [session?.user?.name, status]);
+
+  console.log("userName", userName, "status", status);
+
+  const handleSignIn = async () => {
+    await signIn("google");
+    await update();
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setUserName("Your");
+  };
 
   const scrollToSection = (id: string) => {
     setActiveSection(id);
@@ -79,14 +98,14 @@ export default function Home() {
             )}
             {session ? (
               <button
-                onClick={() => signOut()}
+                onClick={handleSignOut}
                 className="px-4 py-2 bg-red-500 text-white rounded"
               >
-                Sign Out ({session.user?.name})
+                Sign Out ({userName})
               </button>
             ) : (
               <button
-                onClick={() => signIn("google")}
+                onClick={handleSignIn}
                 className="px-4 py-2 bg-blue-500 text-white rounded"
               >
                 Sign in with Google
@@ -103,7 +122,12 @@ export default function Home() {
       >
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h1 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
-            <TypedText text={`${userName}'s Library`} delay={60} loop={false} />
+            <TypedText
+              key={userName}
+              text={`${userName}'s Library`}
+              delay={60}
+              loop={false}
+            />
           </h1>
 
           <div className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
@@ -135,6 +159,7 @@ export default function Home() {
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h2 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
             <TypedText
+              key={userName}
               text={`${userName}'s Movie Collection"`}
               delay={60}
               loop={false}
@@ -160,7 +185,7 @@ export default function Home() {
       >
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h2 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
-            <TypedText text={`${userName}'s Recipes`} delay={60} loop={false} />
+            <TypedText key={userName}  text={`${userName}'s Recipes`} delay={60} loop={false} />
           </h2>
           <div className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
             <TypedText text="Delicious recipes for every taste." delay={40} />
