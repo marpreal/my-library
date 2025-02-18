@@ -8,17 +8,21 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())  
-  name         String?
-  email        String   @unique
-  image        String?
-  createdAt    DateTime @default(now())
-  books        Book[]   
-  movies       Movie[]
-  movieReviews MovieReview[]
-  recipes      Recipe[]
-  reviews      Review[]
-  tbrBooks     TBRBook[]
+  id            String        @id @default(uuid())
+  name          String?
+  email         String        @unique
+  image         String?
+  createdAt     DateTime      @default(now())
+  bio           String?
+  favoriteGenre String?
+  location      String?
+  theme         String?
+  books         Book[]
+  movies        Movie[]
+  movieReviews  MovieReview[]
+  recipes       Recipe[]
+  reviews       Review[]
+  tbrBooks      TBRBook[]
 }
 
 model Book {
@@ -30,11 +34,10 @@ model Book {
   description String?
   publisher   String?
   createdAt   DateTime @default(now())
-  userId  String   @map("userId")
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String   @map("userId")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews     Review[]
 }
-
 
 model Review {
   id        Int      @id @default(autoincrement())
@@ -56,7 +59,7 @@ model TBRBook {
 }
 
 model Movie {
-  id          Int      @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   title       String
   director    String?
   releaseDate DateTime?
@@ -64,10 +67,10 @@ model Movie {
   description String?
   genre       String?
   viewedDate  DateTime
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime? @updatedAt
-  userId      String    @map("userId")
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime?     @updatedAt
+  userId      String        @map("userId")
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviews     MovieReview[]
 }
 

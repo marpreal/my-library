@@ -49,9 +49,7 @@ export default function BookModal({
       return;
     }
 
-
     const payload = { title, author, date, imageUrl, userId };
-
 
     try {
       const savedBook = await saveBook(payload, bookToEdit?.id?.toString());
@@ -212,7 +210,7 @@ export default function BookModal({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-lg bg-gold text-white"
+              className="px-5 py-2 rounded-lg bg-[rgba(224,178,26,0.9)] text-white hover:bg-[rgba(224,178,26,1)] transition shadow-md"
             >
               {bookToEdit ? "Save Changes" : "Add Book"}
             </button>

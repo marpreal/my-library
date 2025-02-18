@@ -11,7 +11,7 @@ const TypedText = dynamic(() => import("./components/TypedText"), {
 
 export default function Home() {
   const { data: session } = useSession();
-
+  const userName = session?.user.name || "Your";
   const [activeSection, setActiveSection] = useState("books");
 
   const scrollToSection = (id: string) => {
@@ -68,7 +68,15 @@ export default function Home() {
           >
             Recipes
           </button>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
+            {session && (
+              <Link
+                href="/profile"
+                className="text-lg font-semibold text-white hover:text-gold-500"
+              >
+                Profile
+              </Link>
+            )}
             {session ? (
               <button
                 onClick={() => signOut()}
@@ -95,8 +103,9 @@ export default function Home() {
       >
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h1 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
-            <TypedText text="Marta's Library" delay={60} loop={false} />
+            <TypedText text={`${userName}'s Library`} delay={60} loop={false} />
           </h1>
+
           <div className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
             <TypedText text="Like BookReads but better." delay={40} />
           </div>
@@ -126,7 +135,7 @@ export default function Home() {
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h2 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
             <TypedText
-              text="Marta's Movie Collection"
+              text={`${userName}'s Movie Collection"`}
               delay={60}
               loop={false}
             />
@@ -151,7 +160,7 @@ export default function Home() {
       >
         <div className="text-center p-8 bg-white/90 rounded-3xl shadow-2xl backdrop-blur-md max-w-md w-full border border-gray-200">
           <h2 className="text-5xl font-bold text-highlight mb-4 drop-shadow-md">
-            <TypedText text="Marta's Recipes" delay={60} loop={false} />
+            <TypedText text={`${userName}'s Recipes`} delay={60} loop={false} />
           </h2>
           <div className="text-gray-700 text-lg italic mb-6 hover:text-olive transition">
             <TypedText text="Delicious recipes for every taste." delay={40} />
