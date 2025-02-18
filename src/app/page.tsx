@@ -6,7 +6,6 @@ import Navbar from "./components/Navbar";
 import Section from "./components/Section";
 import ScrollButton from "./components/ScrollButton";
 
-
 export default function Home() {
   const { data: session, status, update } = useSession();
   const [userName, setUserName] = useState("Your");

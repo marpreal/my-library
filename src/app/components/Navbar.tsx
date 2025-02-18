@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import AuthButtons from "./AuthButtons";
+import AuthDropdown from "./AuthDropdown";
 
 export default function Navbar({
   activeSection,
@@ -33,14 +32,7 @@ export default function Navbar({
           ))}
         </div>
 
-        <div className="flex items-center gap-4">
-          {userName !== "Your" && (
-            <Link href="/profile" className="text-lg font-semibold text-white hover:text-gold-500">
-              {userName}&apos;s Profile
-            </Link>
-          )}
-          <AuthButtons userName={userName} handleSignIn={handleSignIn} handleSignOut={handleSignOut} />
-        </div>
+        <AuthDropdown userName={userName} handleSignIn={handleSignIn} handleSignOut={handleSignOut} />
       </div>
     </nav>
   );

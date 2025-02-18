@@ -10,7 +10,7 @@ export default function MovieDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session } = useSession();
-  const userId = session?.user?.id; // ✅ Get the user ID
+  const userId = session?.user?.id;
 
   const [movie, setMovie] = useState<Movie | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -106,7 +106,7 @@ export default function MovieDetailPage() {
       const response = await fetch(`/api/movies/${movieId}/reviews`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reviewId, userId }), // ✅ Include userId
+        body: JSON.stringify({ reviewId, userId }), 
       });
 
       if (!response.ok) {

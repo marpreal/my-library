@@ -57,13 +57,11 @@ export default function MoviesModal({
       return;
     }
 
-    // ✅ Convert dates to ISO format
     const formattedViewedDate = new Date(viewedDate).toISOString();
     const formattedReleaseDate = releaseDate
       ? new Date(releaseDate).toISOString()
       : null;
 
-    // ✅ API request payload
     const payload = {
       title,
       director: director || "Unknown Director",
@@ -77,7 +75,7 @@ export default function MoviesModal({
       const method = movieToEdit ? "PATCH" : "POST";
       const url = movieToEdit
         ? `/api/movies?id=${movieToEdit.id}`
-        : "/api/movies"; // ✅ PATCH needs ?id=
+        : "/api/movies"; 
 
       console.log("🚀 Submitting Payload:", payload);
 

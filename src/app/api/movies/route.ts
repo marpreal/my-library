@@ -102,7 +102,7 @@ export async function PATCH(request: Request) {
           ? new Date(releaseDate)
           : existingMovie.releaseDate,
         imageUrl: imageUrl ?? existingMovie.imageUrl,
-        viewedDate: new Date(viewedDate), // ✅ Ensure correct format
+        viewedDate: new Date(viewedDate),
       },
     });
 
