@@ -1,11 +1,11 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function ProfilePage() {
-  const { data: session, update } = useSession(); // Add update function
+  const { data: session, update } = useSession();
   const router = useRouter();
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
@@ -36,7 +36,7 @@ export default function ProfilePage() {
         });
     }
   }, [session?.user?.email]);
-console.log(name)
+
   const handleUpdateProfile = async () => {
     const response = await fetch("/api/profile", {
       method: "POST",
@@ -47,7 +47,6 @@ console.log(name)
     if (response.ok) {
       alert("Profile updated successfully!");
 
-      // 🔹 Refresh NextAuth session so the updated name appears immediately
       await update();
     } else {
       alert("Failed to update profile.");
@@ -57,7 +56,9 @@ console.log(name)
   if (!session) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p className="text-lg text-gray-700">Please sign in to view your profile.</p>
+        <p className="text-lg text-gray-700">
+          Please sign in to view your profile.
+        </p>
       </div>
     );
   }
@@ -69,7 +70,7 @@ console.log(name)
       </div>
     );
   }
-console.log(session.user.name)
+
   return (
     <div className="max-w-2xl mx-auto p-8 bg-white shadow-md rounded-lg mt-16">
       <h1 className="text-3xl font-bold text-gray-900 mb-4">Profile</h1>
@@ -84,7 +85,6 @@ console.log(session.user.name)
           onChange={(e) => setName(e.target.value)}
         />
       </div>
-
       <div className="mt-4">
         <label className="block font-semibold">Bio</label>
         <textarea
@@ -115,10 +115,16 @@ console.log(session.user.name)
       </div>
 
       <div className="flex justify-between mt-6">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-lg" onClick={handleUpdateProfile}>
+        <button
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+          onClick={handleUpdateProfile}
+        >
           Save Changes
         </button>
-        <button className="px-4 py-2 bg-gray-500 text-white rounded-lg" onClick={() => router.push("/")}>
+        <button
+          className="px-4 py-2 bg-gray-500 text-white rounded-lg"
+          onClick={() => router.push("/")}
+        >
           Back to Home
         </button>
       </div>

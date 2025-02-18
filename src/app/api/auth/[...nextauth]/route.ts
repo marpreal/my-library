@@ -10,9 +10,7 @@ const handler = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       authorization: {
-        params: {
-          prompt: "select_account",
-        },
+        params: { prompt: "select_account" },
       },
     }),
   ],
@@ -44,10 +42,27 @@ const handler = NextAuth({
       }
     },
 
-    async session({ session, token }) {
-      if (token.sub) {
-        session.user.id = token.sub;
+    async session({ session }) {
+      if (!session.user?.email) return session;
+
+      const dbUser = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          bio: true,
+          location: true,
+          theme: true,
+          favoriteGenre: true,
+        },
+      });
+
+      if (dbUser) {
+        session.user = { ...session.user, ...dbUser };
       }
+
       return session;
     },
   },
