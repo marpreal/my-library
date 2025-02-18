@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import RecipeModal from "../components/RecipeModal";
 
 type Recipe = {
-  id: number;
+  id?: number;
   title: string;
   description?: string;
   ingredients: string[];
@@ -15,6 +16,7 @@ export default function SweetsPage() {
   const { data: session, status } = useSession();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -46,6 +48,14 @@ export default function SweetsPage() {
 
     fetchRecipes();
   }, [session, status, router]);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
+  const handleRecipeAdded = (newRecipe: Recipe) => {
+    setRecipes((prevRecipes) => [...prevRecipes, newRecipe]);
+    closeModal();
+  };
 
   if (status === "loading") {
     return <div>Loading session...</div>;
@@ -95,6 +105,23 @@ export default function SweetsPage() {
         </div>
       ) : (
         <p className="text-xl text-gray-600">No sweet recipes found.</p>
+      )}
+
+      <div className="mt-10">
+        <button
+          onClick={openModal}
+          className="px-6 py-3 bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white rounded-lg shadow-lg hover:scale-105 transition text-lg font-semibold"
+        >
+          + Add Sweet Recipe
+        </button>
+      </div>
+
+      {isModalOpen && (
+        <RecipeModal
+          onClose={closeModal}
+          onRecipeAdded={handleRecipeAdded}
+          preselectedCategory="Sweets"
+        />
       )}
     </div>
   );

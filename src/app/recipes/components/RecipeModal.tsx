@@ -17,16 +17,18 @@ export default function RecipeModal({
   onClose,
   onRecipeAdded,
   recipeToEdit = null,
+  preselectedCategory = "",
 }: {
   onClose: () => void;
   onRecipeAdded: (recipe: Recipe) => void;
   recipeToEdit?: Recipe | null;
+  preselectedCategory?: string;
 }) {
   const { data: session } = useSession();
   const userId = session?.user?.id ?? "";
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(preselectedCategory);
   const [description, setDescription] = useState("");
   const [ingredients, setIngredients] = useState<string[]>([""]);
 
@@ -36,8 +38,10 @@ export default function RecipeModal({
       setCategory(recipeToEdit.category);
       setDescription(recipeToEdit.description || "");
       setIngredients(recipeToEdit.ingredients || [""]);
+    } else if (preselectedCategory) {
+      setCategory(preselectedCategory);
     }
-  }, [recipeToEdit]);
+  }, [recipeToEdit, preselectedCategory]);
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] flex items-center justify-center z-50">
@@ -74,6 +78,7 @@ export default function RecipeModal({
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="px-4 py-3 rounded-lg border border-gray-300"
+            disabled={!!preselectedCategory}
           >
             <option value="">Select Category</option>
             <option value="Sweets">Sweets</option>
@@ -119,7 +124,7 @@ export default function RecipeModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 bg-gray-300 text-gray-800"
+              className="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg"
             >
               Cancel
             </button>
