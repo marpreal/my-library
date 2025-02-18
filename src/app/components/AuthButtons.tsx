@@ -1,18 +1,15 @@
-import { signIn, signOut, useSession } from "next-auth/react";
-
-export default function AuthButtons() {
-  const { data: session } = useSession();
-
+export default function AuthButtons({ userName, handleSignIn, handleSignOut }: { userName: string; handleSignIn: () => void; handleSignOut: () => void }) {
   return (
-    <div>
-      {session ? (
-        <>
-          <p>Welcome, {session.user?.name}!</p>
-          <button onClick={() => signOut()}>Sign Out</button>
-        </>
+    <>
+      {userName !== "Your" ? (
+        <button onClick={handleSignOut} className="px-4 py-2 bg-red-500 text-white rounded">
+          Sign Out ({userName})
+        </button>
       ) : (
-        <button onClick={() => signIn("google")}>Sign In with Google</button>
+        <button onClick={handleSignIn} className="px-4 py-2 bg-blue-500 text-white rounded">
+          Sign in with Google
+        </button>
       )}
-    </div>
+    </>
   );
 }
