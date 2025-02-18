@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Movie, SearchMovie } from "../types";
 import Image from "next/image";
-import { saveMovie, searchMovies } from "../../api/movies/movies";
+import { searchMovies } from "../../api/movies/movies";
 import { validateAndFormatDate } from "../utils";
 import { useSession } from "next-auth/react";
 
@@ -45,8 +45,9 @@ export default function MoviesModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!viewedDate || isNaN(new Date(viewedDate).getTime())) {
-      alert("Please provide a valid viewed date in YYYY-MM-DD format.");
+      alert("❌ Please provide a valid viewed date in YYYY-MM-DD format.");
       return;
     }
 
@@ -56,21 +57,45 @@ export default function MoviesModal({
       return;
     }
 
+    // ✅ Convert dates to ISO format
+    const formattedViewedDate = new Date(viewedDate).toISOString();
+    const formattedReleaseDate = releaseDate
+      ? new Date(releaseDate).toISOString()
+      : null;
+
+    // ✅ API request payload
     const payload = {
       title,
       director: director || "Unknown Director",
-      releaseDate: releaseDate || "",
+      releaseDate: formattedReleaseDate,
       imageUrl,
-      viewedDate,
+      viewedDate: formattedViewedDate,
       userId,
     };
 
     try {
-      await saveMovie(payload, movieToEdit?.id?.toString());
+      const method = movieToEdit ? "PATCH" : "POST";
+      const url = movieToEdit
+        ? `/api/movies?id=${movieToEdit.id}`
+        : "/api/movies"; // ✅ PATCH needs ?id=
+
+      console.log("🚀 Submitting Payload:", payload);
+
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${movieToEdit ? "update" : "save"} movie.`);
+      }
+
+      console.log("✅ Movie successfully saved!");
       onMovieAdded();
       onClose();
     } catch (error) {
-      console.error("Error saving movie:", error);
+      console.error("❌ Error saving movie:", error);
       alert("Error saving movie");
     }
   };

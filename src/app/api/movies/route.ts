@@ -1,4 +1,3 @@
-import { validateAndFormatDate } from "@/app/movies/utils";
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -14,19 +13,6 @@ export async function GET(request: Request) {
         { error: "User ID is required" },
         { status: 400 }
       );
-    }
-
-    let user = await prisma.user.findUnique({ where: { id: userId } });
-
-    if (!user) {
-      console.warn("⚠️ User not found, creating a new one...");
-      user = await prisma.user.create({
-        data: {
-          id: userId,
-          name: "New User",
-          email: `user${userId}@example.com`,
-        },
-      });
     }
 
     const movies = await prisma.movie.findMany({
@@ -46,21 +32,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const {
-      title,
-      director,
-      releaseDate,
-      imageUrl,
-      viewedDate,
-      userId,
-    }: {
-      title: string;
-      director?: string;
-      releaseDate?: string;
-      imageUrl?: string;
-      viewedDate: string;
-      userId: string;
-    } = await request.json();
+    const { title, director, releaseDate, imageUrl, viewedDate, userId } =
+      await request.json();
 
     if (!title || !viewedDate || !userId) {
       return NextResponse.json(
@@ -69,33 +42,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const userExists = await prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!userExists) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const validReleaseDate = releaseDate
-      ? validateAndFormatDate(releaseDate)
-      : null;
-    const validViewedDate = validateAndFormatDate(viewedDate);
-
-    if (!validViewedDate) {
-      return NextResponse.json(
-        { error: "Invalid viewedDate format" },
-        { status: 400 }
-      );
-    }
-
     const newMovie = await prisma.movie.create({
       data: {
         title,
-        director: director ?? "",
-        releaseDate: validReleaseDate ? new Date(validReleaseDate) : null,
+        director: director ?? null,
+        releaseDate: releaseDate ? new Date(releaseDate) : null,
         imageUrl: imageUrl ?? null,
-        viewedDate: new Date(validViewedDate),
+        viewedDate: new Date(viewedDate),
         userId,
       },
     });
@@ -110,16 +63,64 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { id } = await context.params;
+export async function PATCH(request: Request) {
   try {
-    const body = await request.json();
+    const { searchParams } = new URL(request.url);
+    const movieId = searchParams.get("id");
 
-    const { title, director, releaseDate, imageUrl, viewedDate, userId } = body;
-    const movieId = parseInt(id, 10);
+    if (!movieId) {
+      return NextResponse.json(
+        { error: "Movie ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const { title, director, releaseDate, imageUrl, viewedDate, userId } =
+      await request.json();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const existingMovie = await prisma.movie.findUnique({
+      where: { id: parseInt(movieId, 10) },
+    });
+
+    if (!existingMovie) {
+      return NextResponse.json({ error: "Movie not found" }, { status: 404 });
+    }
+
+    const updatedMovie = await prisma.movie.update({
+      where: { id: parseInt(movieId, 10) },
+      data: {
+        title: title ?? existingMovie.title,
+        director: director ?? existingMovie.director,
+        releaseDate: releaseDate
+          ? new Date(releaseDate)
+          : existingMovie.releaseDate,
+        imageUrl: imageUrl ?? existingMovie.imageUrl,
+        viewedDate: new Date(viewedDate), // ✅ Ensure correct format
+      },
+    });
+
+    return NextResponse.json(updatedMovie, { status: 200 });
+  } catch (error) {
+    console.error("❌ Error updating movie:", error);
+    return NextResponse.json(
+      { error: "Error updating movie" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const movieId = searchParams.get("id");
+    const { userId } = await request.json();
 
     if (!movieId || !userId) {
       return NextResponse.json(
@@ -129,38 +130,25 @@ export async function PATCH(
     }
 
     const existingMovie = await prisma.movie.findUnique({
-      where: { id: movieId },
+      where: { id: parseInt(movieId, 10) },
     });
 
     if (!existingMovie) {
       return NextResponse.json({ error: "Movie not found" }, { status: 404 });
     }
 
-    const updatedMovie = await prisma.movie.update({
-      where: { id: movieId },
-      data: {
-        title: title ?? existingMovie.title,
-        director: director ?? existingMovie.director,
-        releaseDate: releaseDate
-          ? new Date(releaseDate).toISOString()
-          : existingMovie.releaseDate
-          ? new Date(existingMovie.releaseDate).toISOString()
-          : null,
-        imageUrl: imageUrl ?? existingMovie.imageUrl,
-        viewedDate: viewedDate
-          ? new Date(viewedDate + "T00:00:00.000Z").toISOString()
-          : existingMovie.viewedDate
-          ? new Date(existingMovie.viewedDate).toISOString()
-          : existingMovie.viewedDate,
-        updatedAt: new Date().toISOString(),
-      },
+    await prisma.movie.delete({
+      where: { id: parseInt(movieId, 10) },
     });
 
-    return NextResponse.json(updatedMovie, { status: 200 });
-  } catch (error) {
-    console.error("❌ Error updating movie:", error);
     return NextResponse.json(
-      { error: "Error updating movie" },
+      { message: "Movie deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("❌ Error deleting movie:", error);
+    return NextResponse.json(
+      { error: "Error deleting movie" },
       { status: 500 }
     );
   }

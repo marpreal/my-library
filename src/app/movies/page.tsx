@@ -76,6 +76,8 @@ export default function MoviesPage() {
       ? new Date(movie.viewedDate)
       : null;
 
+    if (!movieViewedDate) return false;
+
     const selectedStartDate = selectedDates[0]
       ? new Date(selectedDates[0])
       : null;
@@ -83,25 +85,21 @@ export default function MoviesPage() {
       ? new Date(selectedDates[1])
       : null;
 
-    const matchesViewedDateRange =
-      selectedStartDate && selectedEndDate
-        ? movieViewedDate &&
-          movieViewedDate >= selectedStartDate &&
-          movieViewedDate <= selectedEndDate
-        : true;
+    if (isViewingYear) {
+      return movieViewedDate.getFullYear() === currentYear;
+    }
 
-    const matchesMonthAndYear =
-      !selectedStartDate && !selectedEndDate
-        ? movieViewedDate &&
-          movieViewedDate.getMonth() === currentMonth &&
-          movieViewedDate.getFullYear() === currentYear
-        : true;
+    if (selectedStartDate && selectedEndDate) {
+      return (
+        movieViewedDate >= selectedStartDate &&
+        movieViewedDate <= selectedEndDate
+      );
+    }
 
-    const matchesTitle = movie.title
-      .toLowerCase()
-      .includes(searchTitle.toLowerCase());
-
-    return matchesTitle && matchesViewedDateRange && matchesMonthAndYear;
+    return (
+      movieViewedDate.getMonth() === currentMonth &&
+      movieViewedDate.getFullYear() === currentYear
+    );
   });
 
   const moviesWatchedThisYear = movies.filter((movie) => {

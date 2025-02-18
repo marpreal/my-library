@@ -84,7 +84,9 @@ export default function RecipesPage() {
       {isModalOpen && (
         <RecipeModal
           onClose={closeModal}
-          onRecipeAdded={(recipe) => console.log("Recipe Added:", recipe)}
+          onRecipeAdded={(recipe) =>
+            alert(`Recipe "${recipe.title}" added successfully!`)
+          }
         />
       )}
     </div>

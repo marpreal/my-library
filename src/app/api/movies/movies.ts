@@ -34,10 +34,18 @@ export const saveMovie = async (
   const method = movieId ? "PATCH" : "POST";
   const url = movieId ? `/api/movies/${movieId}` : "/api/movies";
 
+  const formattedMovie = {
+    ...movie,
+    viewedDate: new Date(movie.viewedDate).toISOString(),
+    releaseDate: movie.releaseDate
+      ? new Date(movie.releaseDate).toISOString()
+      : null,
+  };
+
   const response = await fetch(url, {
     method,
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(movie),
+    body: JSON.stringify(formattedMovie),
   });
 
   const data = await response.json();
