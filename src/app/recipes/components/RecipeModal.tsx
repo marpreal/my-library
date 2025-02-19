@@ -16,11 +16,13 @@ type Recipe = {
 export default function RecipeModal({
   onClose,
   onRecipeAdded,
+  onRecipeDeleted,
   recipeToEdit = null,
   preselectedCategory = "",
 }: {
   onClose: () => void;
   onRecipeAdded: (recipe: Recipe) => void;
+  onRecipeDeleted: (id: number) => void;
   recipeToEdit?: Recipe | null;
   preselectedCategory?: string;
 }) {
@@ -28,9 +30,12 @@ export default function RecipeModal({
   const userId = session?.user?.id ?? "";
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState(preselectedCategory);
+  const [category, setCategory] = useState(
+    recipeToEdit?.category ?? preselectedCategory ?? "Sweets"
+  );
   const [description, setDescription] = useState("");
   const [ingredients, setIngredients] = useState<string[]>([""]);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (recipeToEdit) {
@@ -38,10 +43,36 @@ export default function RecipeModal({
       setCategory(recipeToEdit.category);
       setDescription(recipeToEdit.description || "");
       setIngredients(recipeToEdit.ingredients || [""]);
-    } else if (preselectedCategory) {
+    } else {
       setCategory(preselectedCategory);
     }
   }, [recipeToEdit, preselectedCategory]);
+
+  const handleDelete = async () => {
+    if (!recipeToEdit?.id) return;
+    if (!confirm("Are you sure you want to delete this recipe?")) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/recipes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: recipeToEdit.id, userId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete recipe");
+      }
+
+      onRecipeDeleted(recipeToEdit.id);
+      onClose();
+    } catch (error) {
+      console.error("❌ Error deleting recipe:", error);
+      alert("Error deleting recipe.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-[rgba(0,0,0,0.6)] flex items-center justify-center z-50">
@@ -78,7 +109,7 @@ export default function RecipeModal({
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             className="px-4 py-3 rounded-lg border border-gray-300"
-            disabled={!!preselectedCategory}
+            disabled={!!recipeToEdit}
           >
             <option value="">Select Category</option>
             <option value="Sweets">Sweets</option>
@@ -120,20 +151,36 @@ export default function RecipeModal({
             </button>
           </div>
 
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2 bg-[#DAA520] text-white rounded-lg shadow-md"
-            >
-              {recipeToEdit ? "Save Changes" : "Add Recipe"}
-            </button>
+          <div className="flex justify-between gap-4 mt-4">
+            {recipeToEdit && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className={`px-5 py-2 bg-red-500 text-white rounded-lg shadow-md ${
+                  isDeleting
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-red-600"
+                }`}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            )}
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 bg-[#DAA520] text-white rounded-lg shadow-md"
+              >
+                {recipeToEdit ? "Save Changes" : "Add Recipe"}
+              </button>
+            </div>
           </div>
         </form>
       </div>
