@@ -9,6 +9,17 @@ export type NutritionalValue = {
   sodium?: number;
 };
 
+export type Comment = {
+  id: number;
+  content: string;
+  createdAt: string;
+  userId: string;
+  user: {
+    id: string;
+    name?: string;
+  };
+};
+
 export type Recipe = {
   id?: number;
   title: string;
@@ -18,4 +29,5 @@ export type Recipe = {
   userId: string;
   isPublic: boolean;
   nutritionalValues?: NutritionalValue[];
+  comments?: Comment[]; 
 };

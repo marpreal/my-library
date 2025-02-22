@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Recipe } from "../recipe.types";
+import CommentSection from "./components/CommentSection";
 
 export default function RecipeDetailsPage({
   params,
@@ -11,24 +12,24 @@ export default function RecipeDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const recipeId = Number(id);
   const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  const { data: session, status } = useSession();
-  const userId = session?.user?.id ?? "";
+  const { status } = useSession();
 
   useEffect(() => {
     if (status === "loading") return;
+    if (!recipeId) return;
 
     const fetchRecipe = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/recipes?id=${id}&userId=${userId}`);
+        const response = await fetch(`/api/recipes?id=${recipeId}`);
         if (!response.ok) throw new Error("Failed to fetch recipe");
 
         const data: Recipe = await response.json();
-        setRecipe(data);
+        setRecipe({ ...data, comments: data.comments ?? [] });
       } catch (error) {
         console.error("Error fetching recipe:", error);
       } finally {
@@ -37,7 +38,7 @@ export default function RecipeDetailsPage({
     };
 
     fetchRecipe();
-  }, [id, userId, status]);
+  }, [recipeId, status]);
 
   if (isLoading)
     return <p className="text-center text-xl">Loading recipe...</p>;
@@ -46,25 +47,15 @@ export default function RecipeDetailsPage({
       <p className="text-center text-xl text-red-500">Recipe not found.</p>
     );
 
-  const categoryRoutes: Record<string, string> = {
-    Sweets: "/recipes/sweets",
-    "Salt Dishes": "/recipes/salt-dishes",
-    Snacks: "/recipes/snacks",
-  };
-
   return (
     <div className="min-h-screen flex flex-col items-center py-10 px-6 sm:px-12 bg-[#fff5e6]">
       <button
-        onClick={() =>
-          router.push(categoryRoutes[recipe.category] || "/recipes")
-        }
+        onClick={() => router.back()}
         className="mb-6 px-4 py-2 bg-[#DAA520] text-white rounded-lg shadow-md hover:bg-[#B8860B] transition font-semibold"
       >
-        ← Back to {recipe.category}
+        ← Back
       </button>
-
       <h1 className="text-4xl font-bold text-[#83511e] mb-6">{recipe.title}</h1>
-
       <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 border border-gray-300 mb-10">
         <h2 className="text-2xl font-semibold text-[#83511e] mb-4">
           Ingredients
@@ -81,7 +72,6 @@ export default function RecipeDetailsPage({
           ))}
         </ul>
       </div>
-
       {recipe.description && (
         <p className="text-lg text-gray-700 mb-12 leading-relaxed text-center max-w-2xl">
           {recipe.description.split("\n").map((line, index) => (
@@ -92,7 +82,6 @@ export default function RecipeDetailsPage({
           ))}
         </p>
       )}
-
       {recipe.nutritionalValues && recipe.nutritionalValues.length > 0 && (
         <div className="mt-8 w-full max-w-sm bg-white shadow-md rounded-lg p-4 border border-gray-300">
           <h2 className="text-xl font-semibold text-[#83511e] mb-2 text-center">
@@ -136,6 +125,7 @@ export default function RecipeDetailsPage({
           </div>
         </div>
       )}
+      <CommentSection recipeId={recipeId} comments={recipe.comments ?? []} />
     </div>
   );
 }

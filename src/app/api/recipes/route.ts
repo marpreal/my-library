@@ -17,7 +17,12 @@ export async function GET(request: Request) {
           id: Number(id),
           OR: [...(userId ? [{ userId }] : []), { isPublic: true }],
         },
-        include: { nutritionalValues: true },
+        include: {
+          nutritionalValues: true,
+          comments: {
+            include: { user: { select: { name: true, image: true } } },
+          },
+        },
       });
 
       if (!recipe) {
@@ -39,13 +44,23 @@ export async function GET(request: Request) {
           NOT: userId ? { userId } : undefined,
         },
         orderBy: { createdAt: "desc" },
-        include: { nutritionalValues: true },
+        include: {
+          nutritionalValues: true,
+          comments: {
+            include: { user: { select: { name: true, image: true } } },
+          },
+        },
       });
     } else if (userId) {
       recipes = await prisma.recipe.findMany({
         where: { userId, category },
         orderBy: { createdAt: "desc" },
-        include: { nutritionalValues: true },
+        include: {
+          nutritionalValues: true,
+          comments: {
+            include: { user: { select: { name: true, image: true } } },
+          },
+        },
       });
     }
 
@@ -61,6 +76,23 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const body = await request.json();
+
+    if (body.content && body.recipeId && body.userId) {
+      const newComment = await prisma.comment.create({
+        data: {
+          content: body.content,
+          userId: body.userId,
+          recipeId: Number(body.recipeId),
+        },
+        include: {
+          user: { select: { name: true } },
+        },
+      });
+
+      return NextResponse.json(newComment, { status: 201 });
+    }
+
     const {
       title,
       category,
@@ -69,19 +101,20 @@ export async function POST(request: Request) {
       userId,
       nutritionalValues,
       isPublic,
-    } = await request.json();
+    } = body;
 
-    if (!userId)
+    if (
+      !userId ||
+      !title ||
+      !category ||
+      !ingredients ||
+      ingredients.length === 0
+    ) {
       return NextResponse.json(
-        { error: "User ID is required" },
+        { error: "User ID, title, category, and ingredients are required" },
         { status: 400 }
       );
-
-    if (!title || !category || !ingredients.length)
-      return NextResponse.json(
-        { error: "Title, category, and ingredients are required" },
-        { status: 400 }
-      );
+    }
 
     const newRecipe = await prisma.recipe.create({
       data: {
@@ -91,7 +124,9 @@ export async function POST(request: Request) {
         ingredients,
         userId,
         isPublic: isPublic ?? false,
-        nutritionalValues: { create: nutritionalValues },
+        nutritionalValues: {
+          create: nutritionalValues ?? [],
+        },
       },
       include: { nutritionalValues: true },
     });
@@ -205,43 +240,74 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { id, userId } = await request.json();
+    const { id, commentId, userId } = await request.json();
 
-    if (!id || !userId) {
+    if (!userId) {
       return NextResponse.json(
-        { error: "Recipe ID and userId are required" },
+        { error: "User ID is required" },
         { status: 400 }
       );
     }
 
-    const recipe = await prisma.recipe.findFirst({
-      where: { id: Number(id), userId },
-      include: { nutritionalValues: true },
-    });
+    if (commentId) {
+      const comment = await prisma.comment.findFirst({
+        where: { id: Number(commentId), userId },
+      });
 
-    if (!recipe) {
+      if (!comment) {
+        return NextResponse.json(
+          { error: "Comment not found or unauthorized" },
+          { status: 403 }
+        );
+      }
+
+      await prisma.comment.delete({ where: { id: Number(commentId) } });
+
       return NextResponse.json(
-        { error: "Recipe not found or unauthorized" },
-        { status: 404 }
+        { message: "Comment deleted successfully" },
+        { status: 200 }
       );
     }
 
-    await prisma.nutritionalValue.deleteMany({
-      where: { recipeId: Number(id) },
-    });
+    if (id) {
+      const recipe = await prisma.recipe.findFirst({
+        where: { id: Number(id), userId },
+        include: { comments: true, nutritionalValues: true },
+      });
 
-    await prisma.recipe.delete({
-      where: { id: Number(id) },
-    });
+      if (!recipe) {
+        return NextResponse.json(
+          { error: "Recipe not found or unauthorized" },
+          { status: 404 }
+        );
+      }
+
+      await prisma.comment.deleteMany({
+        where: { recipeId: Number(id) },
+      });
+
+      await prisma.nutritionalValue.deleteMany({
+        where: { recipeId: Number(id) },
+      });
+
+      await prisma.recipe.delete({
+        where: { id: Number(id) },
+      });
+
+      return NextResponse.json(
+        { message: "Recipe deleted successfully" },
+        { status: 200 }
+      );
+    }
 
     return NextResponse.json(
-      { message: "Recipe deleted successfully" },
-      { status: 200 }
+      { error: "No valid ID provided for deletion" },
+      { status: 400 }
     );
   } catch (error) {
     console.error("DELETE /api/recipes error:", error);
     return NextResponse.json(
-      { error: "Failed to delete recipe" },
+      { error: "Failed to delete item" },
       { status: 500 }
     );
   }
