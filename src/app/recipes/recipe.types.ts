@@ -1,4 +1,5 @@
 export type NutritionalValue = {
+  id?: number;
   calories: number;
   protein: number;
   carbs: number;
@@ -15,5 +16,6 @@ export type Recipe = {
   description?: string;
   ingredients: string[];
   userId: string;
+  isPublic: boolean;
   nutritionalValues?: NutritionalValue[];
 };

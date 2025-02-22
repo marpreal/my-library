@@ -8,6 +8,7 @@ export function handleRecipeSubmit({
   ingredients,
   nutritionalValues,
   userId,
+  isPublic,
   recipeToEdit,
   onRecipeAdded,
   onClose,
@@ -19,6 +20,7 @@ export function handleRecipeSubmit({
   ingredients: string[];
   nutritionalValues: NutritionalValue | NutritionalValue[];
   userId: string;
+  isPublic: boolean;
   recipeToEdit?: Recipe | null;
   onRecipeAdded: (recipe: Recipe) => void;
   onClose: () => void;
@@ -36,9 +38,8 @@ export function handleRecipeSubmit({
     return;
   }
 
-  const cleanedNutritionalValues = (Array.isArray(nutritionalValues)
-    ? nutritionalValues
-    : [nutritionalValues]
+  const cleanedNutritionalValues = (
+    Array.isArray(nutritionalValues) ? nutritionalValues : [nutritionalValues]
   ).map((value) => ({
     calories: value.calories || 0,
     protein: value.protein || 0,
@@ -56,8 +57,8 @@ export function handleRecipeSubmit({
     ingredients,
     nutritionalValues: cleanedNutritionalValues,
     userId,
+    isPublic,
   };
-
 
   fetch("/api/recipes", {
     method: recipeToEdit?.id ? "PUT" : "POST",
@@ -79,7 +80,8 @@ export function handleRecipeSubmit({
     })
     .catch((error) => {
       console.error("❌ Error saving recipe:", error);
-      alert(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      alert(
+        `Error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     });
 }
-

@@ -9,6 +9,7 @@ export function useRecipes(category: string) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [publicRecipes, setPublicRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -20,108 +21,103 @@ export function useRecipes(category: string) {
       return;
     }
 
-    const fetchRecipes = async () => {
+    const fetchUserRecipes = async () => {
       try {
         setIsLoading(true);
         const userId = session.user.id;
         const response = await fetch(
-          `/api/recipes?category=${category}&userId=${userId}`
+          `/api/recipes?category=${encodeURIComponent(
+            category
+          )}&userId=${userId}`
         );
-
-        if (!response.ok) throw new Error("Failed to fetch recipes");
-
+        if (!response.ok) throw new Error("Failed to fetch user recipes");
         const data: Recipe[] = await response.json();
 
-        const processedRecipes = data.map((recipe) => ({
-          ...recipe,
-          nutritionalValues:
-            Array.isArray(recipe.nutritionalValues) &&
-            recipe.nutritionalValues.length > 0
-              ? recipe.nutritionalValues
-              : [
-                  {
-                    calories: 0,
-                    protein: 0,
-                    carbs: 0,
-                    fats: 0,
-                    fiber: undefined,
-                    sugar: undefined,
-                    sodium: undefined,
-                  },
-                ],
-        }));
-
-        setRecipes(processedRecipes);
+        setRecipes(data.filter((recipe) => recipe.category === category));
       } catch (error) {
-        console.error("Error fetching recipes:", error);
+        console.error("Error fetching user recipes:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchRecipes();
+    fetchUserRecipes();
   }, [session, status, router, category]);
 
-  const openModal = (recipe: Recipe | null = null) => {
-    setSelectedRecipe(recipe);
-    setIsModalOpen(true);
-  };
+  useEffect(() => {
+    const fetchPublicRecipes = async () => {
+      try {
+        const userId = session?.user?.id; 
+        const response = await fetch(
+          `/api/recipes?category=${encodeURIComponent(
+            category
+          )}&publicOnly=true&userId=${userId}`
+        );
 
-  const closeModal = () => {
-    setSelectedRecipe(null);
-    setIsModalOpen(false);
-  };
+        if (!response.ok) throw new Error("Failed to fetch public recipes");
+        const data: Recipe[] = await response.json();
 
-  const handleRecipeAdded = (newRecipe: Recipe) => {
-    setRecipes((prev) => {
-      if (selectedRecipe && newRecipe.id !== undefined) {
-        return prev.map((r) => (r.id === newRecipe.id ? newRecipe : r));
-      } else {
-        return [...prev, newRecipe];
+        setPublicRecipes(data);
+      } catch (error) {
+        console.error("Error fetching public recipes:", error);
       }
-    });
-    closeModal();
-  };
+    };
 
-  const handleDelete = async (id?: number) => {
-    if (id === undefined) return;
-
-    const userConfirmed = confirm(
-      "Are you sure you want to delete this recipe?"
-    );
-    if (!userConfirmed) return;
-
-    try {
-      const response = await fetch("/api/recipes", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, userId: session?.user?.id }),
-      });
-
-      if (!response.ok) throw new Error("Failed to delete recipe");
-
-      const updatedRecipesResponse = await fetch(
-        `/api/recipes?category=${category}&userId=${session?.user?.id}`
-      );
-
-      if (!updatedRecipesResponse.ok)
-        throw new Error("Failed to refresh recipes");
-
-      const updatedRecipes = await updatedRecipesResponse.json();
-      setRecipes(updatedRecipes);
-    } catch (error) {
-      console.error("Error deleting recipe:", error);
-    }
-  };
+    if (session) fetchPublicRecipes();
+  }, [session, category]);
 
   return {
     recipes,
+    publicRecipes,
     isLoading,
     isModalOpen,
     selectedRecipe,
-    openModal,
-    closeModal,
-    handleRecipeAdded,
-    handleDelete,
+    openModal: (recipe: Recipe | null = null) => {
+      setSelectedRecipe(recipe);
+      setIsModalOpen(true);
+    },
+    closeModal: () => {
+      setSelectedRecipe(null);
+      setIsModalOpen(false);
+    },
+    handleRecipeAdded: (newRecipe: Recipe) => {
+      setRecipes((prev) => {
+        if (selectedRecipe && newRecipe.id !== undefined) {
+          return prev.map((r) => (r.id === newRecipe.id ? newRecipe : r));
+        } else {
+          return [...prev, newRecipe];
+        }
+      });
+    },
+    handleDelete: async (id?: number) => {
+      if (id === undefined) return;
+      const userConfirmed = confirm(
+        "Are you sure you want to delete this recipe?"
+      );
+      if (!userConfirmed) return;
+
+      try {
+        const response = await fetch("/api/recipes", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, userId: session?.user?.id }),
+        });
+
+        if (!response.ok) throw new Error("Failed to delete recipe");
+
+        const updatedRecipesResponse = await fetch(
+          `/api/recipes?category=${encodeURIComponent(category)}&userId=${
+            session?.user?.id
+          }`
+        );
+        if (!updatedRecipesResponse.ok)
+          throw new Error("Failed to refresh recipes");
+
+        const updatedRecipes = await updatedRecipesResponse.json();
+        setRecipes(updatedRecipes);
+      } catch (error) {
+        console.error("Error deleting recipe:", error);
+      }
+    },
   };
 }

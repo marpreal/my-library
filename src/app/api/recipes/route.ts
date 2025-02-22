@@ -6,21 +6,17 @@ const prisma = new PrismaClient();
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: "User ID is required" },
-        { status: 400 }
-      );
-    }
-
-    const category = searchParams.get("category");
+    const userId = searchParams.get("userId") || undefined;
+    const category = searchParams.get("category") || undefined;
     const id = searchParams.get("id");
+    const publicOnly = searchParams.get("publicOnly") === "true";
 
     if (id) {
       const recipe = await prisma.recipe.findFirst({
-        where: { id: Number(id), userId },
+        where: {
+          id: Number(id),
+          OR: [...(userId ? [{ userId }] : []), { isPublic: true }],
+        },
         include: { nutritionalValues: true },
       });
 
@@ -33,11 +29,25 @@ export async function GET(request: Request) {
       return NextResponse.json(recipe, { status: 200 });
     }
 
-    const recipes = await prisma.recipe.findMany({
-      where: { userId, ...(category ? { category } : {}) },
-      orderBy: { createdAt: "desc" },
-      include: { nutritionalValues: true },
-    });
+    let recipes: unknown[] = [];
+
+    if (publicOnly) {
+      recipes = await prisma.recipe.findMany({
+        where: {
+          isPublic: true,
+          category,
+          NOT: userId ? { userId } : undefined,
+        },
+        orderBy: { createdAt: "desc" },
+        include: { nutritionalValues: true },
+      });
+    } else if (userId) {
+      recipes = await prisma.recipe.findMany({
+        where: { userId, category },
+        orderBy: { createdAt: "desc" },
+        include: { nutritionalValues: true },
+      });
+    }
 
     return NextResponse.json(recipes, { status: 200 });
   } catch (error) {
@@ -58,21 +68,20 @@ export async function POST(request: Request) {
       ingredients,
       userId,
       nutritionalValues,
+      isPublic,
     } = await request.json();
 
-    if (!userId) {
+    if (!userId)
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 }
       );
-    }
 
-    if (!title || !category || !ingredients || !ingredients.length) {
+    if (!title || !category || !ingredients.length)
       return NextResponse.json(
         { error: "Title, category, and ingredients are required" },
         { status: 400 }
       );
-    }
 
     const newRecipe = await prisma.recipe.create({
       data: {
@@ -81,9 +90,8 @@ export async function POST(request: Request) {
         description,
         ingredients,
         userId,
-        nutritionalValues: {
-          create: nutritionalValues,
-        },
+        isPublic: isPublic ?? false,
+        nutritionalValues: { create: nutritionalValues },
       },
       include: { nutritionalValues: true },
     });
@@ -108,21 +116,20 @@ export async function PUT(request: Request) {
       ingredients,
       userId,
       nutritionalValues,
+      isPublic,
     } = await request.json();
 
-    if (!id || !title || !category || !ingredients || !ingredients.length) {
+    if (!id || !title || !category || !ingredients.length)
       return NextResponse.json(
         { error: "ID, title, category, and ingredients are required" },
         { status: 400 }
       );
-    }
 
-    if (!userId) {
+    if (!userId)
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 }
       );
-    }
 
     const recipe = await prisma.recipe.findFirst({
       where: { id: Number(id), userId },
@@ -181,6 +188,7 @@ export async function PUT(request: Request) {
         category,
         description,
         ingredients,
+        isPublic: isPublic ?? recipe.isPublic,
       },
       include: { nutritionalValues: true },
     });

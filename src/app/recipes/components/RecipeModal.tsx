@@ -25,10 +25,9 @@ export default function RecipeModal({
   );
   const [description, setDescription] = useState("");
   const [ingredients, setIngredients] = useState<string[]>([""]);
+  const [isPublic, setIsPublic] = useState(recipeToEdit?.isPublic ?? false);
 
-  const [nutritionalValues, setNutritionalValues] = useState<
-    NutritionalValue[]
-  >(
+  const [nutritionalValues, setNutritionalValues] = useState<NutritionalValue[]>(
     recipeToEdit?.nutritionalValues?.length
       ? recipeToEdit.nutritionalValues
       : [
@@ -50,6 +49,7 @@ export default function RecipeModal({
       setCategory(recipeToEdit.category);
       setDescription(recipeToEdit.description || "");
       setIngredients(recipeToEdit.ingredients || [""]);
+      setIsPublic(recipeToEdit.isPublic ?? false);
       setNutritionalValues(
         recipeToEdit.nutritionalValues?.length
           ? recipeToEdit.nutritionalValues
@@ -101,6 +101,7 @@ export default function RecipeModal({
               ingredients,
               nutritionalValues,
               userId,
+              isPublic, 
               recipeToEdit,
               onRecipeAdded,
               onClose,
@@ -161,6 +162,16 @@ export default function RecipeModal({
               + Add Ingredient
             </button>
           </div>
+
+          <label className="flex items-center gap-2 text-lg text-gray-700">
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={() => setIsPublic((prev) => !prev)}
+              className="w-5 h-5 accent-[#DAA520] cursor-pointer"
+            />
+            Make this recipe public
+          </label>
 
           <div className="flex flex-col gap-2">
             <h3 className="text-lg font-semibold">Nutritional Values</h3>

@@ -92,10 +92,12 @@ model Recipe {
   description      String?
   createdAt        DateTime          @default(now())
   ingredients      String[]
+  isPublic         Boolean           @default(false) 
   userId           String            @map("userId")
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   nutritionalValues NutritionalValue[] 
 }
+
 
 model NutritionalValue {
   id        Int     @id @default(autoincrement())
