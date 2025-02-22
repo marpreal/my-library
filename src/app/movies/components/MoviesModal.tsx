@@ -77,7 +77,6 @@ export default function MoviesModal({
         ? `/api/movies?id=${movieToEdit.id}`
         : "/api/movies"; 
 
-      console.log("🚀 Submitting Payload:", payload);
 
       const response = await fetch(url, {
         method,
@@ -89,7 +88,6 @@ export default function MoviesModal({
         throw new Error(`Failed to ${movieToEdit ? "update" : "save"} movie.`);
       }
 
-      console.log("✅ Movie successfully saved!");
       onMovieAdded();
       onClose();
     } catch (error) {

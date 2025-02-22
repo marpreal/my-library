@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import RecipeModal from "../components/RecipeModal";
 import { useRecipes } from "../hooks/useRecipes";
+import Link from "next/link";
 
 export default function RecipesPage({ category }: { category: string }) {
   const {
@@ -38,35 +39,38 @@ export default function RecipesPage({ category }: { category: string }) {
       ) : recipes.length > 0 ? (
         <div className="flex flex-col gap-6 w-full max-w-4xl">
           {recipes.map((recipe) => (
-            <div
+            <Link
               key={recipe.id}
-              className="bg-white shadow-md rounded-lg p-6 border border-gray-300 flex justify-between items-center"
+              href={`/recipes/${recipe.id}`}
+              className="block bg-white shadow-md rounded-lg p-6 border border-gray-300 hover:bg-gray-100 transition cursor-pointer relative"
             >
               <div>
                 <h2 className="text-2xl font-bold text-[#83511e] mb-2">
                   {recipe.title}
                 </h2>
-                {recipe.description && (
-                  <p className="text-gray-700">{recipe.description}</p>
-                )}
               </div>
-              <div className="flex justify-end gap-2">
-                {/* Edit button */}
+
+              <div className="absolute top-4 right-4 flex gap-2">
                 <button
-                  onClick={() => openModal(recipe)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openModal(recipe);
+                  }}
                   className="text-blue-500 text-2xl hover:text-blue-700 transition"
                 >
                   ✏️
                 </button>
-                {/* Delete button */}
                 <button
-                  onClick={() => handleDelete(recipe.id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDelete(recipe.id);
+                  }}
                   className="text-red-500 text-2xl hover:text-red-700 transition"
                 >
                   🗑️
                 </button>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       ) : (
@@ -88,7 +92,6 @@ export default function RecipesPage({ category }: { category: string }) {
         <RecipeModal
           onClose={closeModal}
           onRecipeAdded={handleRecipeAdded}
-          onRecipeDeleted={handleDelete}
           recipeToEdit={selectedRecipe ?? null}
           preselectedCategory={category}
         />

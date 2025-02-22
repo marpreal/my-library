@@ -9,7 +9,6 @@ export async function GET(request: Request) {
     const userId = searchParams.get("userId");
 
     if (!userId) {
-      console.error("❌ Missing userId in request");
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 }
@@ -22,6 +21,7 @@ export async function GET(request: Request) {
     if (id) {
       const recipe = await prisma.recipe.findFirst({
         where: { id: Number(id), userId },
+        include: { nutritionalValues: true },
       });
 
       if (!recipe) {
@@ -34,11 +34,9 @@ export async function GET(request: Request) {
     }
 
     const recipes = await prisma.recipe.findMany({
-      where: {
-        userId,
-        ...(category ? { category } : {}),
-      },
+      where: { userId, ...(category ? { category } : {}) },
       orderBy: { createdAt: "desc" },
+      include: { nutritionalValues: true },
     });
 
     return NextResponse.json(recipes, { status: 200 });
@@ -53,11 +51,16 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { title, category, description, ingredients, userId } =
-      await request.json();
+    const {
+      title,
+      category,
+      description,
+      ingredients,
+      userId,
+      nutritionalValues,
+    } = await request.json();
 
     if (!userId) {
-      console.error("❌ Missing userId in request.");
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 }
@@ -71,13 +74,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const userExists = await prisma.user.findUnique({ where: { id: userId } });
-
-    if (!userExists) {
-      console.error("❌ User not found in database.");
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
     const newRecipe = await prisma.recipe.create({
       data: {
         title,
@@ -85,7 +81,11 @@ export async function POST(request: Request) {
         description,
         ingredients,
         userId,
+        nutritionalValues: {
+          create: nutritionalValues,
+        },
       },
+      include: { nutritionalValues: true },
     });
 
     return NextResponse.json(newRecipe, { status: 201 });
@@ -100,8 +100,15 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const { id, title, category, description, ingredients, userId } =
-      await request.json();
+    const {
+      id,
+      title,
+      category,
+      description,
+      ingredients,
+      userId,
+      nutritionalValues,
+    } = await request.json();
 
     if (!id || !title || !category || !ingredients || !ingredients.length) {
       return NextResponse.json(
@@ -111,7 +118,6 @@ export async function PUT(request: Request) {
     }
 
     if (!userId) {
-      console.error("❌ Missing userId in request.");
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 }
@@ -120,6 +126,7 @@ export async function PUT(request: Request) {
 
     const recipe = await prisma.recipe.findFirst({
       where: { id: Number(id), userId },
+      include: { nutritionalValues: true },
     });
 
     if (!recipe) {
@@ -129,9 +136,53 @@ export async function PUT(request: Request) {
       );
     }
 
+    const cleanedNutritionalValues = Array.isArray(nutritionalValues)
+      ? nutritionalValues
+      : [nutritionalValues];
+
+    for (const value of cleanedNutritionalValues) {
+      const existingValue = await prisma.nutritionalValue.findFirst({
+        where: { recipeId: Number(id) },
+      });
+
+      if (existingValue) {
+        await prisma.nutritionalValue.update({
+          where: { id: existingValue.id },
+          data: {
+            calories: value.calories,
+            protein: value.protein,
+            carbs: value.carbs,
+            fats: value.fats,
+            fiber: value.fiber ?? null,
+            sugar: value.sugar ?? null,
+            sodium: value.sodium ?? null,
+          },
+        });
+      } else {
+        await prisma.nutritionalValue.create({
+          data: {
+            recipeId: Number(id),
+            calories: value.calories,
+            protein: value.protein,
+            carbs: value.carbs,
+            fats: value.fats,
+            fiber: value.fiber ?? null,
+            sugar: value.sugar ?? null,
+            sodium: value.sodium ?? null,
+          },
+        });
+      }
+    }
+
     const updatedRecipe = await prisma.recipe.update({
       where: { id: Number(id) },
-      data: { title, category, description, ingredients },
+      data: {
+        title,
+        category,
+        description,
+        ingredients,
+      },
+      include: { nutritionalValues: true },
     });
 
     return NextResponse.json(updatedRecipe, { status: 200 });
@@ -157,6 +208,7 @@ export async function DELETE(request: Request) {
 
     const recipe = await prisma.recipe.findFirst({
       where: { id: Number(id), userId },
+      include: { nutritionalValues: true },
     });
 
     if (!recipe) {
@@ -166,7 +218,13 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await prisma.recipe.delete({ where: { id: Number(id) } });
+    await prisma.nutritionalValue.deleteMany({
+      where: { recipeId: Number(id) },
+    });
+
+    await prisma.recipe.delete({
+      where: { id: Number(id) },
+    });
 
     return NextResponse.json(
       { message: "Recipe deleted successfully" },

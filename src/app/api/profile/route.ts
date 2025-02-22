@@ -45,16 +45,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Read request body
     const body = await req.json();
     const { name, bio, location, theme, favoriteGenre } = body;
 
-    // Ensure we have at least one field to update
     if (!name && !bio && !location && !theme && !favoriteGenre) {
       return NextResponse.json({ error: "No data provided" }, { status: 400 });
     }
 
-    // Update the user profile
     const updatedUser = await prisma.user.update({
       where: { email: session.user.email },
       data: { name, bio, location, theme, favoriteGenre },

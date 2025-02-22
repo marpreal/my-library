@@ -86,12 +86,29 @@ model MovieReview {
 }
 
 model Recipe {
-  id          Int      @id @default(autoincrement())
-  title       String
-  category    String
-  description String?
-  createdAt   DateTime @default(now())
-  ingredients String[]
-  userId      String   @map("userId")
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               Int               @id @default(autoincrement())
+  title            String
+  category         String
+  description      String?
+  createdAt        DateTime          @default(now())
+  ingredients      String[]
+  userId           String            @map("userId")
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nutritionalValues NutritionalValue[] 
 }
+
+model NutritionalValue {
+  id        Int     @id @default(autoincrement())
+  recipeId  Int
+  calories  Float   
+  protein   Float   
+  carbs     Float   
+  fats      Float   
+  fiber     Float?  
+  sugar     Float?  
+  sodium    Float?  
+  createdAt DateTime @default(now())
+
+  recipe    Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade) 
+}
+

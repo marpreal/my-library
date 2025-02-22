@@ -3,15 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-
-type Recipe = {
-  id?: number;
-  title: string;
-  category: string;
-  description?: string;
-  ingredients: string[];
-  userId: string;
-};
+import { Recipe } from "../recipe.types";
 
 export function useRecipes(category: string) {
   const { data: session, status } = useSession();
@@ -39,7 +31,27 @@ export function useRecipes(category: string) {
         if (!response.ok) throw new Error("Failed to fetch recipes");
 
         const data: Recipe[] = await response.json();
-        setRecipes(data);
+
+        const processedRecipes = data.map((recipe) => ({
+          ...recipe,
+          nutritionalValues:
+            Array.isArray(recipe.nutritionalValues) &&
+            recipe.nutritionalValues.length > 0
+              ? recipe.nutritionalValues
+              : [
+                  {
+                    calories: 0,
+                    protein: 0,
+                    carbs: 0,
+                    fats: 0,
+                    fiber: undefined,
+                    sugar: undefined,
+                    sodium: undefined,
+                  },
+                ],
+        }));
+
+        setRecipes(processedRecipes);
       } catch (error) {
         console.error("Error fetching recipes:", error);
       } finally {
@@ -74,7 +86,10 @@ export function useRecipes(category: string) {
   const handleDelete = async (id?: number) => {
     if (id === undefined) return;
 
-    if (!confirm("Are you sure you want to delete this recipe?")) return;
+    const userConfirmed = confirm(
+      "Are you sure you want to delete this recipe?"
+    );
+    if (!userConfirmed) return;
 
     try {
       const response = await fetch("/api/recipes", {
@@ -85,7 +100,15 @@ export function useRecipes(category: string) {
 
       if (!response.ok) throw new Error("Failed to delete recipe");
 
-      setRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
+      const updatedRecipesResponse = await fetch(
+        `/api/recipes?category=${category}&userId=${session?.user?.id}`
+      );
+
+      if (!updatedRecipesResponse.ok)
+        throw new Error("Failed to refresh recipes");
+
+      const updatedRecipes = await updatedRecipesResponse.json();
+      setRecipes(updatedRecipes);
     } catch (error) {
       console.error("Error deleting recipe:", error);
     }
