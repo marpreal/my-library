@@ -52,6 +52,7 @@ const nextConfig: NextConfig = {
     ],
     minimumCacheTTL: 60,
     deviceSizes: [50, 100, 200, 300],
+    domains: ["res.cloudinary.com"],
   },
 };
 

@@ -1,16 +1,17 @@
-"use client";
-
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 
 export default function AuthDropdown({
   userName,
+  profileImage,
   handleSignIn,
   handleSignOut,
   theme,
 }: {
   userName: string;
+  profileImage?: string;
   handleSignIn: () => void;
   handleSignOut: () => void;
   theme: string;
@@ -20,17 +21,34 @@ export default function AuthDropdown({
   return (
     <div className="relative">
       <button onClick={() => setIsOpen(!isOpen)} className="focus:outline-none">
-        <UserCircleIcon
-          className={`w-10 h-10 transition ${
-            theme === "dark" ? "text-white hover:text-gray-300" : "text-gray-900 hover:text-gray-700"
-          }`}
-        />
+        {profileImage ? (
+          <div className="relative w-10 h-10">
+            <Image
+              src={profileImage}
+              alt="Profile"
+              fill
+              sizes="40px"
+              className="rounded-full border-2 border-gray-300 dark:border-gray-500 object-cover"
+              priority
+            />
+          </div>
+        ) : (
+          <UserCircleIcon
+            className={`w-10 h-10 transition ${
+              theme === "dark"
+                ? "text-white hover:text-gray-300"
+                : "text-gray-900 hover:text-gray-700"
+            }`}
+          />
+        )}
       </button>
 
       {isOpen && (
         <div
           className={`absolute right-0 mt-2 w-48 shadow-lg rounded-lg py-2 transition ${
-            theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+            theme === "dark"
+              ? "bg-gray-800 text-white"
+              : "bg-white text-gray-900"
           }`}
         >
           {userName !== "Your" ? (
@@ -46,7 +64,9 @@ export default function AuthDropdown({
               <button
                 onClick={handleSignOut}
                 className={`block w-full text-left px-4 py-2 transition ${
-                  theme === "dark" ? "text-red-400 hover:bg-gray-700" : "text-red-600 hover:bg-gray-100"
+                  theme === "dark"
+                    ? "text-red-400 hover:bg-gray-700"
+                    : "text-red-600 hover:bg-gray-100"
                 }`}
               >
                 Sign Out
@@ -56,7 +76,9 @@ export default function AuthDropdown({
             <button
               onClick={handleSignIn}
               className={`block w-full text-left px-4 py-2 transition ${
-                theme === "dark" ? "text-blue-400 hover:bg-gray-700" : "text-blue-600 hover:bg-gray-100"
+                theme === "dark"
+                  ? "text-blue-400 hover:bg-gray-700"
+                  : "text-blue-600 hover:bg-gray-100"
               }`}
             >
               Sign In

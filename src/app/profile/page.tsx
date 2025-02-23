@@ -5,22 +5,26 @@ import { useUserAndTheme } from "../hooks/useUserAndTheme";
 import { useProfile } from "./hooks/useProfile";
 import SkeletonLoader from "./components/SkeletonLoader";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
   const router = useRouter();
-  const { theme } = useUserAndTheme(); 
+  const { theme } = useUserAndTheme();
   const {
     name,
     bio,
     location,
     favoriteGenre,
+    image,
     loading,
+    uploading,
     setName,
     setBio,
     setLocation,
     setFavoriteGenre,
     handleUpdateProfile,
+    handleImageUpload,
   } = useProfile(update);
 
   if (!session) {
@@ -51,7 +55,31 @@ export default function ProfilePage() {
           <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
             Welcome, {session.user?.name}
           </p>
-
+          <div className="flex flex-col items-center mb-6">
+            <label htmlFor="imageUpload" className="cursor-pointer">
+              <div className="relative w-32 h-32">
+                <Image
+                  src={image || "/default-avatar.png"}
+                  alt="Profile"
+                  fill
+                  sizes="128px"
+                  className="rounded-full border-2 border-gray-300 dark:border-gray-500 object-cover"
+                />
+              </div>
+              <input
+                id="imageUpload"
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
+            </label>
+            {uploading && (
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Uploading...
+              </p>
+            )}
+          </div>
           <div className="space-y-4">
             <div>
               <label className="block font-semibold">Name</label>
