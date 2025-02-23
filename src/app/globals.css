@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
 :root {
   --font-serif: "Playfair Display", serif;
@@ -136,4 +137,31 @@ button:hover .text-red-500 {
 
 input {
   background-color: #f7e7c3;
+}
+
+.dark .title-text {
+  font-family: "Press Start 2P", cursive;
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #ff00ff,
+    0 0 40px #ff00ff;
+  color: #00ffff;
+  animation: flicker 1.5s infinite alternate;
+}
+
+.light .title-text {
+  font-family: "Merriweather", serif;
+  color: #3a2f2f;
+  text-shadow: 0 2px 5px #a0a081;
+  background: linear-gradient(to right, #5b752e, #a0a081);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.8;
+  }
 }

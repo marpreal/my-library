@@ -14,6 +14,16 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      animation: {
+        "spin-slow": "spin 8s linear infinite", 
+        "flicker": "flicker 1.5s infinite alternate", 
+      },
+      keyframes: {
+        flicker: {
+          "0%": { opacity: "1" },
+          "100%": { opacity: "0.8" },
+        },
+      },
     },
   },
   plugins: [],

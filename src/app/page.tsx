@@ -1,54 +1,64 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Navbar from "./components/Navbar";
-import Section from "./components/Section";
-import ScrollButton from "./components/ScrollButton";
+import { categories } from "./components/Categories";
+import { useUserAndTheme } from "./hooks/useUserAndTheme";
+import { useTypingEffect } from "./hooks/useTypingEffect";
 
 export default function Home() {
-  const { data: session, status, update } = useSession();
-  const [userName, setUserName] = useState("Your");
-  const [activeSection, setActiveSection] = useState("books");
+  const { userName, theme, toggleTheme, handleSignIn, handleSignOut } =
+    useUserAndTheme();
+  const router = useRouter();
+  const title = useTypingEffect(userName);
 
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.name) {
-      setUserName(session.user.name);
-    }
-  }, [session?.user?.name, status]);
-
-  const handleSignIn = async () => {
-    await signIn("google");
-    await update();
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    setUserName("Your");
-  };
-
-  const scrollToSection = (id: string) => {
-    setActiveSection(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  };
+  if (!userName || !theme) return null;
 
   return (
-    <div>
-      <Navbar 
-        activeSection={activeSection} 
-        scrollToSection={scrollToSection} 
-        userName={userName} 
-        handleSignIn={handleSignIn} 
-        handleSignOut={handleSignOut} 
+    <div
+      className={`min-h-screen bg-cover bg-center ${
+        theme === "dark"
+          ? "bg-[url('/cybercore-bg.webp')] text-white"
+          : "bg-[url('/cottagecore-background.jpg')] text-[#3a2f2f]"
+      }`}
+    >
+      <Navbar
+        userName={userName}
+        handleSignIn={handleSignIn}
+        handleSignOut={handleSignOut}
+        theme={theme}
+        toggleTheme={toggleTheme}
       />
 
-      <Section id="books" title={`${userName}'s Library`} description="Like BookReads but better." backgroundImage="/background.jpg" link="/books" />
-      <ScrollButton targetId="movies" onClick={scrollToSection} />
-
-      <Section id="movies" title={`${userName}'s Movie Collection`} description="A curated list of must-watch movies." backgroundImage="/movies-background.jpg" link="/movies" />
-      <ScrollButton targetId="recipes" onClick={scrollToSection} />
-
-      <Section id="recipes" title={`${userName}'s Recipes`} description="Delicious recipes for every taste." backgroundImage="/recipes-background.jpg" link="/recipes" />
+      <main className="container mx-auto px-4 pt-24 text-center">
+        <h1 className={`text-4xl font-bold mb-8 title-text ${theme}`}>
+          {title}
+        </h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.map((category) => (
+            <div
+              key={category.id}
+              className={`shadow-md rounded-lg overflow-hidden cursor-pointer transition hover:scale-105
+                ${
+                  theme === "dark"
+                    ? "bg-gray-800 text-white"
+                    : "bg-[#eae0c8] text-[#3a2f2f]"
+                }
+              `}
+              onClick={() => router.push(category.link)}
+            >
+              <div
+                className="h-40 bg-cover bg-center"
+                style={{ backgroundImage: `url(${category.backgroundImage})` }}
+              />
+              <div className="p-4">
+                <h2 className="text-xl font-semibold">{category.title}</h2>
+                <p>{category.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
     </div>
   );
 }

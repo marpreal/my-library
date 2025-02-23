@@ -32,8 +32,8 @@ const tangerine = Tangerine({
 });
 
 export const metadata: Metadata = {
-  title: "Marta's Library",
-  description: "Explore a timeless collection of books in style.",
+  title: "InfinityBox",
+  description: "A box that holds all your interests",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
