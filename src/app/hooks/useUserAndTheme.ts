@@ -7,12 +7,13 @@ export function useUserAndTheme() {
   const { data: session, status, update } = useSession();
   const [userName, setUserName] = useState<string>("Your");
   const [theme, setTheme] = useState<string | null>(null);
+  const isAuthenticated = status === "authenticated";
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.name) {
+    if (isAuthenticated && session?.user?.name) {
       setUserName(session.user.name);
     }
-  }, [session?.user?.name, status]);
+  }, [session?.user?.name, isAuthenticated]);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem("theme") || "light";
@@ -45,5 +46,6 @@ export function useUserAndTheme() {
     toggleTheme,
     handleSignIn,
     handleSignOut,
+    isAuthenticated,
   };
 }

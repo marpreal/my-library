@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Roboto, Kalam, Tangerine } from "next/font/google";
 import "./globals.css";
-import SessionProvider from "./components/SessionProvider"; 
+import SessionProvider from "./components/SessionProvider";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -34,14 +34,26 @@ const tangerine = Tangerine({
 export const metadata: Metadata = {
   title: "InfinityBox",
   description: "A box that holds all your interests",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
       </head>
+
       <body
         className={`${playfairDisplay.variable} ${roboto.variable} ${kalam.variable} ${tangerine.variable} antialiased`}
       >

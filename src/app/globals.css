@@ -147,15 +147,22 @@ input {
   animation: flicker 1.5s infinite alternate;
 }
 
-.light .title-text {
+.light-title {
   font-family: "Merriweather", serif;
   color: #3a2f2f;
-  text-shadow: 0 2px 5px #a0a081;
+  text-shadow: 0 2px 5px rgba(160, 160, 129, 0.8);
   background: linear-gradient(to right, #5b752e, #a0a081);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+.light-text {
+  color: #c7c53c; 
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); 
+}
+
+
 
 @keyframes flicker {
   0% {
