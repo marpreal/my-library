@@ -1,133 +1,114 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useUserAndTheme } from "../hooks/useUserAndTheme";
+import { useProfile } from "./hooks/useProfile";
+import SkeletonLoader from "./components/SkeletonLoader";
+import { useSession } from "next-auth/react";
 
 export default function ProfilePage() {
   const { data: session, update } = useSession();
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
-  const [location, setLocation] = useState("");
-  const [theme, setTheme] = useState("");
-  const [favoriteGenre, setFavoriteGenre] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (session?.user?.email) {
-      fetch("/api/profile")
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.error) {
-            console.error("Error fetching profile:", data.error);
-          } else {
-            setName(data.name || "");
-            setBio(data.bio || "");
-            setLocation(data.location || "");
-            setTheme(data.theme || "");
-            setFavoriteGenre(data.favoriteGenre || "");
-          }
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error("Failed to load user data:", error);
-          setLoading(false);
-        });
-    }
-  }, [session?.user?.email]);
-
-  const handleUpdateProfile = async () => {
-    const response = await fetch("/api/profile", {
-      method: "POST",
-      body: JSON.stringify({ name, bio, location, theme, favoriteGenre }),
-      headers: { "Content-Type": "application/json" },
-    });
-
-    if (response.ok) {
-      alert("Profile updated successfully!");
-
-      await update();
-    } else {
-      alert("Failed to update profile.");
-    }
-  };
+  const { theme } = useUserAndTheme(); 
+  const {
+    name,
+    bio,
+    location,
+    favoriteGenre,
+    loading,
+    setName,
+    setBio,
+    setLocation,
+    setFavoriteGenre,
+    handleUpdateProfile,
+  } = useProfile(update);
 
   if (!session) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p className="text-lg text-gray-700">
+        <p className="text-lg text-gray-700 dark:text-white">
           Please sign in to view your profile.
         </p>
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-lg text-gray-700">Loading profile...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-2xl mx-auto p-8 bg-white shadow-md rounded-lg mt-16">
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Profile</h1>
-      <p className="text-gray-600">Welcome, {session.user?.name}</p>
+    <div
+      className={`w-full min-h-screen flex justify-center items-center bg-cover bg-center transition-colors duration-500 ${
+        theme === "dark"
+          ? "bg-[url('/cybercore-bg.webp')] text-white"
+          : "bg-[url('/cottagecore-background.jpg')] text-[#3a2f2f]"
+      }`}
+    >
+      {loading ? (
+        <SkeletonLoader />
+      ) : (
+        <div className="w-full max-w-2xl p-8 bg-white dark:bg-gray-800 shadow-md rounded-lg transition-colors duration-500">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+            Profile
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
+            Welcome, {session.user?.name}
+          </p>
 
-      <div className="mt-4">
-        <label className="block font-semibold">Name</label>
-        <input
-          type="text"
-          className="w-full border p-2 rounded-md"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
-      <div className="mt-4">
-        <label className="block font-semibold">Bio</label>
-        <textarea
-          className="w-full border p-2 rounded-md"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-        ></textarea>
-      </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block font-semibold">Name</label>
+              <input
+                type="text"
+                className="w-full border p-2 rounded-md bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
 
-      <div className="mt-4">
-        <label className="block font-semibold">Location</label>
-        <input
-          type="text"
-          className="w-full border p-2 rounded-md"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
-      </div>
+            <div>
+              <label className="block font-semibold">Bio</label>
+              <textarea
+                className="w-full border p-2 rounded-md bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+              ></textarea>
+            </div>
 
-      <div className="mt-4">
-        <label className="block font-semibold">Favorite Genre</label>
-        <input
-          type="text"
-          className="w-full border p-2 rounded-md"
-          value={favoriteGenre}
-          onChange={(e) => setFavoriteGenre(e.target.value)}
-        />
-      </div>
+            <div>
+              <label className="block font-semibold">Location</label>
+              <input
+                type="text"
+                className="w-full border p-2 rounded-md bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </div>
 
-      <div className="flex justify-between mt-6">
-        <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
-          onClick={handleUpdateProfile}
-        >
-          Save Changes
-        </button>
-        <button
-          className="px-4 py-2 bg-gray-500 text-white rounded-lg"
-          onClick={() => router.push("/")}
-        >
-          Back to Home
-        </button>
-      </div>
+            <div>
+              <label className="block font-semibold">Favorite Genre</label>
+              <input
+                type="text"
+                className="w-full border p-2 rounded-md bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white"
+                value={favoriteGenre}
+                onChange={(e) => setFavoriteGenre(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-between mt-6">
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              onClick={handleUpdateProfile}
+            >
+              Save Changes
+            </button>
+            <button
+              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+              onClick={() => router.push("/")}
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
