@@ -1,27 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import {
   fetchMessages,
   sendMessageToAPI,
   fetchChatUsers,
 } from "../handlers/chatHandlers";
-
-interface Message {
-  id: string;
-  senderId: string;
-  recipientId?: string | null;
-  content: string;
-  sender: {
-    name: string;
-    image?: string;
-  };
-}
-
-interface ChatUser {
-  id: string;
-  name: string;
-  image?: string;
-}
+import { ChatUser, Message } from "../page.types";
 
 export function useChat() {
   const { data: session } = useSession();
@@ -30,12 +14,20 @@ export function useChat() {
   const [privateChatUser, setPrivateChatUser] = useState<string | null>(null);
   const [privateChatUsers, setPrivateChatUsers] = useState<ChatUser[]>(() => []);
 
+  const lastPrivateChatUserRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!session) return;
 
     const loadMessages = async () => {
-      const fetchedMessages = await fetchMessages(privateChatUser ?? undefined);
-      setMessages(fetchedMessages);
+      if (privateChatUser && privateChatUser !== lastPrivateChatUserRef.current) {
+        const fetchedMessages = await fetchMessages(privateChatUser);
+        setMessages(fetchedMessages);
+        lastPrivateChatUserRef.current = privateChatUser;
+      } else if (!privateChatUser) {
+        const fetchedMessages = await fetchMessages();  // Fetch all public messages (where recipientId is null)
+        setMessages(fetchedMessages);
+      }
     };
 
     const loadChatUsers = async () => {
@@ -45,7 +37,13 @@ export function useChat() {
 
     loadMessages();
     loadChatUsers();
-    const interval = setInterval(loadMessages, 3000);
+
+    const interval = setInterval(() => {
+      if (privateChatUser !== lastPrivateChatUserRef.current) {
+        loadMessages();
+      }
+    }, 3000);
+
     return () => clearInterval(interval);
   }, [session, privateChatUser]);
 
@@ -60,6 +58,7 @@ export function useChat() {
 
   return {
     messages,
+    setMessages,
     content,
     setContent,
     sendMessage,

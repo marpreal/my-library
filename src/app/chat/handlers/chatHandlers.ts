@@ -1,3 +1,5 @@
+import { Message } from "../page.types";
+
 export const fetchMessages = async (recipientId?: string) => {
   try {
     const url = recipientId
@@ -40,5 +42,53 @@ export const fetchChatUsers = async () => {
   } catch (error) {
     console.error("Error fetching chat users:", error);
     return [];
+  }
+};
+
+export const handleEditMessage = async (
+  messageId: string,
+  newContent: string
+) => {
+  try {
+    const response = await fetch(`/api/chat/message/${messageId}`, {
+      method: "PUT",
+      body: JSON.stringify({ content: newContent }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert("Message edited successfully");
+    }
+  } catch (error) {
+    console.error("Error editing message:", error);
+    alert("Failed to edit message");
+  }
+};
+
+export const handleDelete = async (
+  messageId: string,
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>
+) => {
+  try {
+    const response = await fetch(`/api/chat/message/${messageId}`, {
+      method: "DELETE",
+    });
+    const data = await response.json();
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert("Message deleted successfully");
+
+      setMessages((prevMessages) =>
+        prevMessages.filter((msg) => msg.id !== messageId)
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting message:", error);
+    alert("Failed to delete message");
   }
 };
