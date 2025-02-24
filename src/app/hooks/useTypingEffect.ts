@@ -20,7 +20,7 @@ export function useTypingEffect(userName: string, typingSpeed = 100) {
     }, typingSpeed);
 
     return () => clearInterval(interval);
-  }, [userName]);
+  }, [userName, typingSpeed]);
 
   return title;
 }
