@@ -74,10 +74,12 @@ export const handleDelete = async (
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>
 ) => {
   try {
-    const response = await fetch(`/api/chat/message/${messageId}`, {
+    const response = await fetch(`/api/chat/message/${messageId}/delete`, {
       method: "DELETE",
     });
+
     const data = await response.json();
+
     if (data.error) {
       alert(data.error);
     } else {

@@ -27,7 +27,9 @@ export default function RecipeModal({
   const [ingredients, setIngredients] = useState<string[]>([""]);
   const [isPublic, setIsPublic] = useState(recipeToEdit?.isPublic ?? false);
 
-  const [nutritionalValues, setNutritionalValues] = useState<NutritionalValue[]>(
+  const [nutritionalValues, setNutritionalValues] = useState<
+    NutritionalValue[]
+  >(
     recipeToEdit?.nutritionalValues?.length
       ? recipeToEdit.nutritionalValues
       : [
@@ -41,6 +43,12 @@ export default function RecipeModal({
             sodium: undefined,
           },
         ]
+  );
+
+  const [showNutritionalValues, setShowNutritionalValues] = useState(
+    recipeToEdit?.nutritionalValues?.some((nv) =>
+      Object.values(nv).some((value) => value !== 0 && value !== undefined)
+    ) ?? false
   );
 
   useEffect(() => {
@@ -70,6 +78,35 @@ export default function RecipeModal({
     }
   }, [recipeToEdit, preselectedCategory]);
 
+  const handleIngredientChange = (index: number, value: string) => {
+    const newIngredients = [...ingredients];
+    newIngredients[index] = value;
+    setIngredients(newIngredients);
+  };
+
+  const handleIngredientBlur = (index: number) => {
+    const newIngredients = [...ingredients];
+    const splitIngredients = newIngredients[index]
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item !== "");
+
+    newIngredients.splice(index, 1, ...splitIngredients);
+    setIngredients(newIngredients);
+  };
+
+  const handleDeleteIngredient = (index: number) => {
+    setIngredients((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddIngredient = () => {
+    if (ingredients.some((ingredient) => ingredient.trim() === "")) {
+      alert("❌ Please fill in all ingredient fields before adding a new one.");
+      return;
+    }
+    setIngredients([...ingredients, ""]);
+  };
+
   const handleNutritionalValueChange = (
     index: number,
     key: keyof NutritionalValue,
@@ -78,10 +115,34 @@ export default function RecipeModal({
     setNutritionalValues((prev) =>
       prev.map((entry, i) =>
         i === index
-          ? { ...entry, [key]: value ? parseFloat(value) : undefined }
+          ? {
+              ...entry,
+              [key]: value === "" ? "" : Number(value),
+            }
           : entry
       )
     );
+  };
+
+  const validateForm = () => {
+    const missingFields: string[] = [];
+
+    if (!title.trim()) missingFields.push("Recipe Title");
+    if (!category.trim()) missingFields.push("Category");
+    if (!description.trim()) missingFields.push("Description");
+    if (ingredients.some((ingredient) => ingredient.trim() === ""))
+      missingFields.push("Ingredients (all must be filled)");
+
+    if (missingFields.length > 0) {
+      alert(
+        `❌ Please fill in the following required fields:\n- ${missingFields.join(
+          "\n- "
+        )}`
+      );
+      return false;
+    }
+
+    return true;
   };
 
   return (
@@ -92,7 +153,9 @@ export default function RecipeModal({
         </h2>
 
         <form
-          onSubmit={(e) =>
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!validateForm()) return;
             handleRecipeSubmit({
               e,
               title,
@@ -101,12 +164,12 @@ export default function RecipeModal({
               ingredients,
               nutritionalValues,
               userId,
-              isPublic, 
+              isPublic,
               recipeToEdit,
               onRecipeAdded,
               onClose,
-            })
-          }
+            });
+          }}
           className="flex flex-col gap-6"
         >
           <input
@@ -138,46 +201,47 @@ export default function RecipeModal({
 
           <div className="flex flex-col gap-2">
             {ingredients.map((ingredient, index) => (
-              <div key={index} className="flex gap-2">
+              <div key={index} className="flex gap-2 items-center">
                 <input
                   type="text"
                   placeholder={`Ingredient ${index + 1}`}
                   value={ingredient}
                   onChange={(e) =>
-                    setIngredients((prev) =>
-                      prev.map((item, i) =>
-                        i === index ? e.target.value : item
-                      )
-                    )
+                    handleIngredientChange(index, e.target.value)
                   }
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#DAA520]"
+                  onBlur={() => handleIngredientBlur(index)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => handleDeleteIngredient(index)}
+                  className="px-3 py-2 bg-red-500 text-white rounded-md"
+                >
+                  ❌
+                </button>
               </div>
             ))}
             <button
               type="button"
-              onClick={() => setIngredients([...ingredients, ""])}
-              className="px-4 py-2 bg-[#DAA520] text-white rounded-lg shadow-md hover:scale-105 transition"
+              onClick={handleAddIngredient}
+              className="px-4 py-2 bg-[#DAA520] text-white rounded-lg"
             >
               + Add Ingredient
             </button>
           </div>
 
-          <label className="flex items-center gap-2 text-lg text-gray-700">
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={() => setIsPublic((prev) => !prev)}
-              className="w-5 h-5 accent-[#DAA520] cursor-pointer"
-            />
-            Make this recipe public
-          </label>
-
           <div className="flex flex-col gap-2">
-            <h3 className="text-lg font-semibold">Nutritional Values</h3>
-
-            {nutritionalValues.map((nutrition, index) => (
-              <div key={index} className="flex flex-col gap-2">
+            {!showNutritionalValues ? (
+              <button
+                type="button"
+                onClick={() => setShowNutritionalValues(true)}
+                className="px-4 py-2 bg-[#DAA520] text-white rounded-lg"
+              >
+                + Add Nutritional Values
+              </button>
+            ) : (
+              <>
+                <h3 className="text-lg font-semibold">Nutritional Values</h3>
                 {[
                   "calories",
                   "protein",
@@ -193,19 +257,28 @@ export default function RecipeModal({
                     placeholder={`${
                       key.charAt(0).toUpperCase() + key.slice(1)
                     } (g)`}
-                    value={nutrition[key as keyof NutritionalValue] || ""}
+                    value={
+                      nutritionalValues[0][key as keyof NutritionalValue] || ""
+                    }
                     onChange={(e) =>
                       handleNutritionalValueChange(
-                        index,
+                        0,
                         key as keyof NutritionalValue,
                         e.target.value
                       )
                     }
-                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm"
+                    className="px-4 py-2 border border-gray-300 rounded-md"
                   />
                 ))}
-              </div>
-            ))}
+                <button
+                  type="button"
+                  onClick={() => setShowNutritionalValues(false)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg"
+                >
+                  Remove Nutritional Values
+                </button>
+              </>
+            )}
           </div>
 
           <div className="flex justify-between gap-4 mt-4">

@@ -12,7 +12,9 @@ export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [content, setContent] = useState("");
   const [privateChatUser, setPrivateChatUser] = useState<string | null>(null);
-  const [privateChatUsers, setPrivateChatUsers] = useState<ChatUser[]>(() => []);
+  const [privateChatUsers, setPrivateChatUsers] = useState<ChatUser[]>(
+    () => []
+  );
 
   const lastPrivateChatUserRef = useRef<string | null>(null);
 
@@ -20,12 +22,15 @@ export function useChat() {
     if (!session) return;
 
     const loadMessages = async () => {
-      if (privateChatUser && privateChatUser !== lastPrivateChatUserRef.current) {
+      if (
+        privateChatUser &&
+        privateChatUser !== lastPrivateChatUserRef.current
+      ) {
         const fetchedMessages = await fetchMessages(privateChatUser);
         setMessages(fetchedMessages);
         lastPrivateChatUserRef.current = privateChatUser;
       } else if (!privateChatUser) {
-        const fetchedMessages = await fetchMessages();  // Fetch all public messages (where recipientId is null)
+        const fetchedMessages = await fetchMessages();
         setMessages(fetchedMessages);
       }
     };

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       const recipe = await prisma.recipe.findFirst({
         where: {
           id: Number(id),
-          OR: [...(userId ? [{ userId }] : []), { isPublic: true }],
+          OR: [{ isPublic: true }, userId ? { userId } : {}],
         },
         include: {
           nutritionalValues: true,

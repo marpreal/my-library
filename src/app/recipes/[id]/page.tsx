@@ -16,16 +16,20 @@ export default function RecipeDetailsPage({
   const router = useRouter();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { status } = useSession();
+  const { data: session } = useSession();
 
   useEffect(() => {
-    if (status === "loading") return;
+    if (!session) return;
     if (!recipeId) return;
 
     const fetchRecipe = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/recipes?id=${recipeId}`);
+        const userId = session?.user?.id ?? "";
+
+        const response = await fetch(
+          `/api/recipes?id=${recipeId}&userId=${userId}`
+        );
         if (!response.ok) throw new Error("Failed to fetch recipe");
 
         const data: Recipe = await response.json();
@@ -38,7 +42,13 @@ export default function RecipeDetailsPage({
     };
 
     fetchRecipe();
-  }, [recipeId, status]);
+  }, [recipeId, session]);
+
+  const hasValidNutritionalValues = recipe?.nutritionalValues?.some((nv) =>
+    Object.entries(nv).some(
+      ([key, value]) => key !== "id" && value !== 0 && value !== undefined
+    )
+  );
 
   if (isLoading)
     return <p className="text-center text-xl">Loading recipe...</p>;
@@ -82,50 +92,61 @@ export default function RecipeDetailsPage({
           ))}
         </p>
       )}
-      {recipe.nutritionalValues && recipe.nutritionalValues.length > 0 && (
+      {hasValidNutritionalValues && (
         <div className="mt-8 w-full max-w-sm bg-white shadow-md rounded-lg p-4 border border-gray-300">
           <h2 className="text-xl font-semibold text-[#83511e] mb-2 text-center">
             Nutritional Information
           </h2>
           <div className="grid grid-cols-2 gap-2 text-gray-700 text-md">
-            {recipe.nutritionalValues.map((value, index) => (
+            {recipe?.nutritionalValues?.map((value, index) => (
               <div
                 key={index}
                 className="bg-[#fff8e1] p-3 rounded-md shadow-sm text-center"
               >
-                <p>
-                  <strong>Calories:</strong> {value.calories} kcal
-                </p>
-                <p>
-                  <strong>Protein:</strong> {value.protein} g
-                </p>
-                <p>
-                  <strong>Carbs:</strong> {value.carbs} g
-                </p>
-                <p>
-                  <strong>Fats:</strong> {value.fats} g
-                </p>
-                {value.fiber !== undefined && (
+                {value.calories !== 0 && (
+                  <p>
+                    <strong>Calories:</strong> {value.calories} kcal
+                  </p>
+                )}
+                {value.protein !== 0 && (
+                  <p>
+                    <strong>Protein:</strong> {value.protein} g
+                  </p>
+                )}
+                {value.carbs !== 0 && (
+                  <p>
+                    <strong>Carbs:</strong> {value.carbs} g
+                  </p>
+                )}
+                {value.fats !== 0 && (
+                  <p>
+                    <strong>Fats:</strong> {value.fats} g
+                  </p>
+                )}
+                {value.fiber !== undefined && value.fiber !== 0 && (
                   <p>
                     <strong>Fiber:</strong> {value.fiber} g
                   </p>
                 )}
-                {value.sugar !== undefined && (
+                {value.sugar !== undefined && value.sugar !== 0 && (
                   <p>
                     <strong>Sugar:</strong> {value.sugar} g
                   </p>
                 )}
-                {value.sodium !== undefined && (
+                {value.sodium !== undefined && value.sodium !== 0 && (
                   <p>
                     <strong>Sodium:</strong> {value.sodium} mg
                   </p>
                 )}
               </div>
-            ))}
+            )) ?? []}
           </div>
         </div>
       )}
-      <CommentSection recipeId={recipeId} comments={recipe.comments ?? []} />
+
+      {recipe.isPublic && (
+        <CommentSection recipeId={recipeId} comments={recipe.comments ?? []} />
+      )}
     </div>
   );
 }

@@ -125,7 +125,7 @@ export default function ChatPage() {
               .filter((msg) =>
                 privateChatMode
                   ? msg.recipientId === privateChatUser || msg.senderId === privateChatUser
-                  : msg.recipientId === null // Only show public messages when in public chat mode
+                  : msg.recipientId === null
               )
               .map((msg, index) => {
                 return (
