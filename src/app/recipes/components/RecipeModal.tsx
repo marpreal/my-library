@@ -34,10 +34,10 @@ export default function RecipeModal({
       ? recipeToEdit.nutritionalValues
       : [
           {
-            calories: 0,
-            protein: 0,
-            carbs: 0,
-            fats: 0,
+            calories: undefined,
+            protein: undefined,
+            carbs: undefined,
+            fats: undefined,
             fiber: undefined,
             sugar: undefined,
             sodium: undefined,
@@ -117,7 +117,7 @@ export default function RecipeModal({
         i === index
           ? {
               ...entry,
-              [key]: value === "" ? undefined : parseFloat(value), 
+              [key]: value === "" ? undefined : parseFloat(value),
             }
           : entry
       )

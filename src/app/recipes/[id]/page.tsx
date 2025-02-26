@@ -157,22 +157,22 @@ export default function RecipeDetailsPage({
                 key={index}
                 className="bg-[#fff8e1] p-3 rounded-md shadow-sm text-center"
               >
-                {value.calories !== 0 && (
+                {value.calories !== undefined && value.calories !== 0 && (
                   <p>
                     <strong>Calories:</strong> {value.calories} kcal
                   </p>
                 )}
-                {value.protein !== 0 && (
+                {value.protein !== undefined && value.protein !== 0 && (
                   <p>
                     <strong>Protein:</strong> {value.protein} g
                   </p>
                 )}
-                {value.carbs !== 0 && (
+                {value.carbs !== undefined && value.carbs !== 0 && (
                   <p>
                     <strong>Carbs:</strong> {value.carbs} g
                   </p>
                 )}
-                {value.fats !== 0 && (
+                {value.fats !== undefined && value.fats !== 0 && (
                   <p>
                     <strong>Fats:</strong> {value.fats} g
                   </p>

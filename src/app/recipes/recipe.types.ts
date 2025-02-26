@@ -1,9 +1,9 @@
 export type NutritionalValue = {
   id?: number;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
   fiber?: number;
   sugar?: number;
   sodium?: number;
