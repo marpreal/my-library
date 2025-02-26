@@ -1,10 +1,12 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Recipe } from "../recipe.types";
 import CommentSection from "./components/CommentSection";
+import StarRating from "../components/StarRating";
+import { use } from "react";
 
 export default function RecipeDetailsPage({
   params,
@@ -49,6 +51,40 @@ export default function RecipeDetailsPage({
       ([key, value]) => key !== "id" && value !== 0 && value !== undefined
     )
   );
+  const handleRatingSubmit = async (value: number) => {
+    if (!session?.user) {
+      alert("You must be logged in to rate a recipe.");
+      return;
+    }
+
+    await fetch("/api/ratings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recipeId, userId: session.user.id, value }),
+    });
+
+    setRecipe((prev) =>
+      prev
+        ? {
+            ...prev,
+            averageRating:
+              ((prev.averageRating ?? 0) * (prev.ratings?.length ?? 0) +
+                value) /
+              ((prev.ratings?.length ?? 0) + 1),
+            ratings: [
+              ...(prev.ratings ?? []),
+              {
+                id: Date.now(),
+                value,
+                userId: session.user.id,
+                recipeId,
+                createdAt: new Date().toISOString(),
+              },
+            ],
+          }
+        : prev
+    );
+  };
 
   if (isLoading)
     return <p className="text-center text-xl">Loading recipe...</p>;
@@ -66,6 +102,24 @@ export default function RecipeDetailsPage({
         ← Back
       </button>
       <h1 className="text-4xl font-bold text-[#83511e] mb-6">{recipe.title}</h1>
+
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-gray-600 text-lg">Average Rating</span>
+        <div className="flex items-center gap-2">
+          <StarRating rating={recipe.averageRating} />
+          <span className="text-lg text-gray-700">
+            {recipe.averageRating.toFixed(1)}
+          </span>
+        </div>
+      </div>
+
+      {session?.user && (
+        <div className="mt-4 flex flex-col items-center gap-1">
+          <span className="text-gray-600 text-lg">Your Rating</span>
+          <StarRating rating={0} onRate={handleRatingSubmit} />
+        </div>
+      )}
+
       <div className="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 border border-gray-300 mb-10">
         <h2 className="text-2xl font-semibold text-[#83511e] mb-4">
           Ingredients

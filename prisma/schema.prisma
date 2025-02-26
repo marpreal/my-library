@@ -24,6 +24,7 @@ model User {
   reviews       Review[]
   tbrBooks      TBRBook[]
   comments      Comment[]
+  ratings       Rating[] 
 
   sentMessages      Message[] @relation("SentMessages") 
   receivedMessages  Message[] @relation("ReceivedMessages") 
@@ -110,6 +111,17 @@ model Comment {
   recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 }
 
+model Rating {
+  id        Int      @id @default(autoincrement())
+  value     Int     
+  userId    String   
+  recipeId  Int      
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+}
+
 model Recipe {
   id               Int               @id @default(autoincrement())
   title            String
@@ -122,9 +134,8 @@ model Recipe {
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   nutritionalValues NutritionalValue[] 
   comments         Comment[]          
+  ratings         Rating[]            
 }
-
-
 
 model NutritionalValue {
   id        Int     @id @default(autoincrement())

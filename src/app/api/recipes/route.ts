@@ -1,7 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Recipe } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
+type RecipeWithRatings = Recipe & {
+  ratings: { value: number }[];
+};
 
 export async function GET(request: Request) {
   try {
@@ -22,6 +25,7 @@ export async function GET(request: Request) {
           comments: {
             include: { user: { select: { name: true, image: true } } },
           },
+          ratings: true,
         },
       });
 
@@ -31,10 +35,17 @@ export async function GET(request: Request) {
           { status: 404 }
         );
       }
-      return NextResponse.json(recipe, { status: 200 });
+
+      const averageRating =
+        recipe.ratings.length > 0
+          ? recipe.ratings.reduce((acc, r) => acc + r.value, 0) /
+            recipe.ratings.length
+          : 0;
+
+      return NextResponse.json({ ...recipe, averageRating }, { status: 200 });
     }
 
-    let recipes: unknown[] = [];
+    let recipes: RecipeWithRatings[] = [];
 
     if (publicOnly) {
       recipes = await prisma.recipe.findMany({
@@ -49,6 +60,8 @@ export async function GET(request: Request) {
           comments: {
             include: { user: { select: { name: true, image: true } } },
           },
+          user: { select: { name: true, image: true } },
+          ratings: true,
         },
       });
     } else if (userId) {
@@ -60,11 +73,21 @@ export async function GET(request: Request) {
           comments: {
             include: { user: { select: { name: true, image: true } } },
           },
+          ratings: true,
         },
       });
     }
 
-    return NextResponse.json(recipes, { status: 200 });
+    const recipesWithRatings = recipes.map((recipe) => ({
+      ...recipe,
+      averageRating:
+        recipe.ratings.length > 0
+          ? recipe.ratings.reduce((acc, r) => acc + r.value, 0) /
+            recipe.ratings.length
+          : 0,
+    }));
+
+    return NextResponse.json(recipesWithRatings, { status: 200 });
   } catch (error) {
     console.error("GET /api/recipes error:", error);
     return NextResponse.json(
@@ -76,66 +99,42 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-
-    if (body.content && body.recipeId && body.userId) {
-      const newComment = await prisma.comment.create({
-        data: {
-          content: body.content,
-          userId: body.userId,
-          recipeId: Number(body.recipeId),
-        },
-        include: {
-          user: { select: { name: true } },
-        },
-      });
-
-      return NextResponse.json(newComment, { status: 201 });
-    }
-
-    const {
-      title,
-      category,
-      description,
-      ingredients,
-      userId,
-      nutritionalValues,
-      isPublic,
-    } = body;
+    const { recipeId, userId, value } = await request.json();
 
     if (
+      !recipeId ||
       !userId ||
-      !title ||
-      !category ||
-      !ingredients ||
-      ingredients.length === 0
+      typeof value !== "number" ||
+      value < 1 ||
+      value > 5
     ) {
       return NextResponse.json(
-        { error: "User ID, title, category, and ingredients are required" },
+        { error: "Invalid rating value (must be between 1 and 5)" },
         { status: 400 }
       );
     }
 
-    const newRecipe = await prisma.recipe.create({
-      data: {
-        title,
-        category,
-        description,
-        ingredients,
-        userId,
-        isPublic: isPublic ?? false,
-        nutritionalValues: {
-          create: nutritionalValues ?? [],
-        },
-      },
-      include: { nutritionalValues: true },
+    const existingRating = await prisma.rating.findFirst({
+      where: { recipeId, userId },
     });
 
-    return NextResponse.json(newRecipe, { status: 201 });
+    let rating;
+    if (existingRating) {
+      rating = await prisma.rating.update({
+        where: { id: existingRating.id },
+        data: { value },
+      });
+    } else {
+      rating = await prisma.rating.create({
+        data: { recipeId, userId, value },
+      });
+    }
+
+    return NextResponse.json(rating, { status: 200 });
   } catch (error) {
-    console.error("POST /api/recipes error:", error);
+    console.error("POST /api/ratings error:", error);
     return NextResponse.json(
-      { error: "Failed to create recipe" },
+      { error: "Failed to submit rating" },
       { status: 500 }
     );
   }
@@ -271,8 +270,17 @@ export async function DELETE(request: Request) {
 
     if (id) {
       const recipe = await prisma.recipe.findFirst({
-        where: { id: Number(id), userId },
-        include: { comments: true, nutritionalValues: true },
+        where: {
+          id: Number(id),
+          OR: [{ isPublic: true }, userId ? { userId } : {}],
+        },
+        include: {
+          nutritionalValues: true,
+          comments: {
+            include: { user: { select: { name: true, image: true } } },
+          },
+          user: { select: { name: true, image: true } },
+        },
       });
 
       if (!recipe) {
@@ -281,23 +289,7 @@ export async function DELETE(request: Request) {
           { status: 404 }
         );
       }
-
-      await prisma.comment.deleteMany({
-        where: { recipeId: Number(id) },
-      });
-
-      await prisma.nutritionalValue.deleteMany({
-        where: { recipeId: Number(id) },
-      });
-
-      await prisma.recipe.delete({
-        where: { id: Number(id) },
-      });
-
-      return NextResponse.json(
-        { message: "Recipe deleted successfully" },
-        { status: 200 }
-      );
+      return NextResponse.json(recipe, { status: 200 });
     }
 
     return NextResponse.json(

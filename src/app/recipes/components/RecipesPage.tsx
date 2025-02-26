@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import RecipeModal from "../components/RecipeModal";
 import { useRecipes } from "../hooks/useRecipes";
 import Link from "next/link";
+import Image from "next/image";
+import StarRating from "./StarRating";
 
 export default function RecipesPage({ category }: { category: string }) {
   const {
@@ -95,10 +97,36 @@ export default function RecipesPage({ category }: { category: string }) {
                     href={`/recipes/${recipe.id}`}
                     className="block bg-white shadow-md rounded-lg p-6 border border-gray-300 hover:bg-gray-100 transition cursor-pointer"
                   >
+                    <div className="flex items-center gap-4 mb-2">
+                      {recipe.user?.image ? (
+                        <Image
+                          src={recipe.user.image}
+                          alt={recipe.user.name}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded-full border border-gray-300 shadow-md"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full text-gray-600">
+                          {recipe.user?.name?.charAt(0).toUpperCase() ?? "U"}
+                        </div>
+                      )}
+                      <span className="text-lg font-semibold text-gray-800">
+                        {recipe.user?.name ?? "Unknown"}
+                      </span>
+                    </div>
+
                     <h2 className="text-2xl font-bold text-[#83511e] mb-2">
                       {recipe.title}
                     </h2>
                     <p className="text-gray-700">{recipe.category}</p>
+
+                    <div className="flex items-center gap-2 mt-2">
+                      <StarRating rating={recipe.averageRating} />
+                      <span className="text-lg text-gray-600">
+                        {recipe.averageRating.toFixed(1)}
+                      </span>
+                    </div>
                   </Link>
                 ))}
               </div>

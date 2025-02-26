@@ -20,14 +20,25 @@ export type Comment = {
   };
 };
 
+export type Rating = {
+  id: number;
+  value: number;
+  userId: string;
+  recipeId: number;
+  createdAt: string;
+};
+
 export type Recipe = {
-  id?: number;
+  id: number;
   title: string;
   category: string;
-  description?: string;
+  description: string;
   ingredients: string[];
-  userId: string;
-  isPublic: boolean;
   nutritionalValues?: NutritionalValue[];
-  comments?: Comment[]; 
+  isPublic: boolean;
+  userId: string;
+  user?: { name: string; image?: string };
+  comments?: Comment[];
+  ratings: Rating[];
+  averageRating: number;
 };

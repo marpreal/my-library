@@ -48,21 +48,22 @@ export function useRecipes(category: string) {
     const fetchPublicRecipes = async () => {
       try {
         const response = await fetch(
-          `/api/recipes?category=${encodeURIComponent(category)}&publicOnly=true`
+          `/api/recipes?category=${encodeURIComponent(
+            category
+          )}&publicOnly=true`
         );
-    
+
         if (!response.ok) throw new Error("Failed to fetch public recipes");
         const data: Recipe[] = await response.json();
-    
-        setPublicRecipes(data);
+
+        setPublicRecipes(data); 
       } catch (error) {
         console.error("Error fetching public recipes:", error);
       }
     };
-    
 
-    if (session) fetchPublicRecipes();
-  }, [session, category]);
+    fetchPublicRecipes();
+  }, [category]);
 
   return {
     recipes,
