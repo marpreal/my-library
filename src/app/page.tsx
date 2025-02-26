@@ -23,7 +23,6 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen">
-      {/* Background with blur effect for dark theme */}
       <div
         className={`absolute inset-0 bg-center bg-cover z-0 ${
           theme === "dark" ? "bg-[url('/cybercore-bg.webp')] filter blur-md scale-105" : "bg-[url('/cottagecore-background.jpg')]"

@@ -1,214 +1,55 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useEffect } from "react";
 import MoviesModal from "./components/MoviesModal";
-import { Movie } from "./types";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
+import { useMovieHandlers } from "./handlers/page.handlers";
+import { useRouter } from "next/navigation";
+import Navbar from "../components/Navbar";
+import { useUserAndTheme } from "../hooks/useUserAndTheme";
 
 export default function MoviesPage() {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [movieToEdit, setMovieToEdit] = useState<Movie | null>(null);
-  const [searchTitle, setSearchTitle] = useState("");
-  const [selectedDates, setSelectedDates] = useState<
-    [Date | null, Date | null]
-  >([null, null]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isViewingYear, setIsViewingYear] = useState(false);
-  const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id;
-
-  const handleDateChange = (dates: [Date | null, Date | null]) => {
-    setSelectedDates(dates);
-  };
-
-  const handlePreviousMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((prev) => prev - 1);
-    } else {
-      setCurrentMonth((prev) => prev - 1);
-    }
-  };
-
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((prev) => prev + 1);
-    } else {
-      setCurrentMonth((prev) => prev + 1);
-    }
-  };
+  const router = useRouter();
+  const { userName, theme, toggleTheme, handleSignIn, handleSignOut } =
+    useUserAndTheme();
+  const {
+    movies,
+    isLoading,
+    isModalOpen,
+    currentMonth,
+    currentYear,
+    movieToEdit,
+    searchTitle,
+    selectedDates,
+    isProcessing,
+    isDeleting,
+    isViewingYear,
+    filteredMovies,
+    handleDateChange,
+    handlePreviousMonth,
+    handleNextMonth,
+    handleToggleView,
+    handleOpenModal,
+    handleCloseModal,
+    handleEditMovie,
+    handleDeleteMovie,
+    handleMovieProcessed,
+    setSearchTitle,
+    fetchMovies,
+  } = useMovieHandlers(userId);
 
   useEffect(() => {
-    const fetchMovies = async () => {
-      if (!userId) return;
-      try {
-        const response = await fetch(`/api/movies?userId=${userId}`);
-        if (response.ok) {
-          const data: Movie[] = await response.json();
-          setMovies(data);
-        } else {
-          console.error("Error fetching movies");
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMovies();
-  }, [userId]);
-
-  const filteredMovies = movies.filter((movie) => {
-    const movieViewedDate = movie.viewedDate
-      ? new Date(movie.viewedDate)
-      : null;
-
-    if (!movieViewedDate) return false;
-
-    const selectedStartDate = selectedDates[0]
-      ? new Date(selectedDates[0])
-      : null;
-    const selectedEndDate = selectedDates[1]
-      ? new Date(selectedDates[1])
-      : null;
-
-    if (isViewingYear) {
-      return movieViewedDate.getFullYear() === currentYear;
+    if (userId) {
+      fetchMovies();
     }
+  }, [userId, fetchMovies]);
 
-    if (selectedStartDate && selectedEndDate) {
-      return (
-        movieViewedDate >= selectedStartDate &&
-        movieViewedDate <= selectedEndDate
-      );
-    }
-
-    return (
-      movieViewedDate.getMonth() === currentMonth &&
-      movieViewedDate.getFullYear() === currentYear
-    );
-  });
-
-  const moviesWatchedThisYear = movies.filter((movie) => {
-    const movieViewedDate = movie.viewedDate
-      ? new Date(movie.viewedDate)
-      : null;
-    return movieViewedDate && movieViewedDate.getFullYear() === currentYear;
-  }).length;
-
-  const moviesWatchedThisMonth = movies.filter((movie) => {
-    const movieViewedDate = movie.viewedDate
-      ? new Date(movie.viewedDate)
-      : null;
-    return (
-      movieViewedDate &&
-      movieViewedDate.getMonth() === currentMonth &&
-      movieViewedDate.getFullYear() === currentYear
-    );
-  }).length;
-
-  const handleToggleView = () => {
-    setIsViewingYear((prev) => !prev);
-  };
-
-  const handleOpenModal = () => {
-    setMovieToEdit(null);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => setIsModalOpen(false);
-
-  const handleEditMovie = async (id: number) => {
-    try {
-      const response = await fetch(`/api/movies/${id}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch movie details");
-      }
-      const movie = await response.json();
-      setMovieToEdit(movie);
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error("Error fetching movie details:", error);
-    }
-  };
-
-  const handleDeleteMovie = async (id: number) => {
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/api/movies/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
-      if (response.ok) {
-        setMovies((prevMovies) =>
-          prevMovies.filter((movie) => movie.id !== id)
-        );
-      } else {
-        console.error("Error deleting movie");
-      }
-    } catch (error) {
-      console.error("Error deleting movie:", error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const fetchMovies = async () => {
-    try {
-      const response = await fetch(`/api/movies?userId=${userId}`);
-      if (response.ok) {
-        const data: Movie[] = await response.json();
-        setMovies(data);
-      } else {
-        console.error("Error fetching movies");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleMovieProcessed = async () => {
-    setIsProcessing(true);
-    try {
-      await fetchMovies();
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Error processing movie:", error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const renderSkeleton = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-6 w-full max-w-6xl">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div
-          key={index}
-          className="bg-gray-200 p-6 rounded-lg shadow-lg border border-gray-300 animate-pulse"
-        >
-          <div className="h-6 bg-gray-300 rounded mb-4"></div>
-          <div className="h-4 bg-gray-300 rounded mb-2"></div>
-          <div className="h-4 bg-gray-300 rounded"></div>
-        </div>
-      ))}
-    </div>
-  );
+  if (!theme) return null;
 
   return (
     <div className="min-h-screen flex flex-col items-center py-10 relative overflow-hidden">
@@ -220,32 +61,42 @@ export default function MoviesPage() {
           transform: "scale(1.02)",
         }}
       ></div>
-      <Link
-        href="/"
-        className="absolute top-4 left-4 px-4 py-2 bg-gold text-highlight rounded-lg shadow-md border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-105 z-10"
-        style={{
-          backgroundColor: "var(--gold)",
-          color: "white",
-        }}
-      >
-        Back to Menu
-      </Link>
+
+      <Navbar
+        userName={userName}
+        handleSignIn={handleSignIn}
+        handleSignOut={handleSignOut}
+        theme={theme}
+        toggleTheme={toggleTheme}
+      />
+
       <div className="relative text-center z-10 mt-8 sm:mt-10">
         <h1
           className="text-4xl sm:text-7xl font-bold text-gold relative"
-          style={{
-            textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)",
-          }}
+          style={{ textShadow: "2px 2px 5px rgba(0, 0, 0, 0.7)" }}
         >
           Movies
         </h1>
         <p className="text-lg sm:text-2xl mt-4 text-white">
-          Watched this year: {moviesWatchedThisYear}
+          Watched this year:{" "}
+          {
+            movies.filter(
+              (m) => new Date(m.viewedDate).getFullYear() === currentYear
+            ).length
+          }
         </p>
         <p className="text-lg sm:text-2xl mt-2 text-white">
-          Watched this month: {moviesWatchedThisMonth}
+          Watched this month:{" "}
+          {
+            movies.filter(
+              (m) =>
+                new Date(m.viewedDate).getMonth() === currentMonth &&
+                new Date(m.viewedDate).getFullYear() === currentYear
+            ).length
+          }
         </p>
       </div>
+
       {(isProcessing || isDeleting) && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-4 rounded shadow-lg text-center">
@@ -255,6 +106,7 @@ export default function MoviesPage() {
           </div>
         </div>
       )}
+
       <div className="flex flex-wrap justify-center items-center gap-4 mb-6 z-20 max-w-6xl px-6 mt-6 sm:mt-8">
         <div className="w-full flex flex-col sm:flex-row gap-2">
           {!isViewingYear && (
@@ -300,8 +152,9 @@ export default function MoviesPage() {
           </button>
         </div>
       </div>
+
       {isLoading ? (
-        renderSkeleton()
+        <div className="text-white text-xl">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 px-4 sm:px-6 w-full max-w-6xl z-10 mb-6">
           {filteredMovies.map((movie) => (
@@ -313,7 +166,7 @@ export default function MoviesPage() {
               {movie.imageUrl && (
                 <div className="relative mb-4">
                   <Image
-                    src={movie.imageUrl}
+                    src={movie.imageUrl ?? "/placeholder.jpg"}
                     alt={`${movie.title} poster`}
                     width={300}
                     height={300}
@@ -351,6 +204,7 @@ export default function MoviesPage() {
           ))}
         </div>
       )}
+
       {isModalOpen && (
         <MoviesModal
           onClose={handleCloseModal}
@@ -358,13 +212,10 @@ export default function MoviesPage() {
           movieToEdit={movieToEdit}
         />
       )}
+
       <button
         onClick={handleOpenModal}
         className="fixed bottom-6 right-6 bg-gold text-highlight p-4 rounded-full shadow-lg border border-highlight hover:bg-highlight hover:text-golden transition transform hover:scale-110 z-10"
-        style={{
-          backgroundColor: "var(--gold)",
-          color: "white",
-        }}
       >
         + Add Movie
       </button>
