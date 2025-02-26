@@ -117,7 +117,7 @@ export default function RecipeModal({
         i === index
           ? {
               ...entry,
-              [key]: value === "" ? "" : Number(value),
+              [key]: value === "" ? undefined : parseFloat(value), 
             }
           : entry
       )
@@ -254,11 +254,12 @@ export default function RecipeModal({
                   <input
                     key={key}
                     type="number"
+                    step="0.1"
                     placeholder={`${
                       key.charAt(0).toUpperCase() + key.slice(1)
                     } (g)`}
                     value={
-                      nutritionalValues[0][key as keyof NutritionalValue] || ""
+                      nutritionalValues[0][key as keyof NutritionalValue] ?? ""
                     }
                     onChange={(e) =>
                       handleNutritionalValueChange(

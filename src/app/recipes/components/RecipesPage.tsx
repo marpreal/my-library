@@ -122,9 +122,9 @@ export default function RecipesPage({ category }: { category: string }) {
                     <p className="text-gray-700">{recipe.category}</p>
 
                     <div className="flex items-center gap-2 mt-2">
-                      <StarRating rating={recipe.averageRating} />
+                      <StarRating rating={recipe.averageRating ?? 0} />
                       <span className="text-lg text-gray-600">
-                        {recipe.averageRating.toFixed(1)}
+                        {(recipe.averageRating ?? 0).toFixed(1)}
                       </span>
                     </div>
                   </Link>

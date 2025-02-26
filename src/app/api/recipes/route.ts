@@ -1,4 +1,4 @@
-import { PrismaClient, Recipe } from "@prisma/client";
+import { NutritionalValue, PrismaClient, Recipe } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
@@ -99,42 +99,74 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { recipeId, userId, value } = await request.json();
+    const {
+      title,
+      category,
+      description,
+      ingredients,
+      nutritionalValues,
+      userId,
+      isPublic,
+    }: {
+      title: string;
+      category: string;
+      description: string;
+      ingredients: string[];
+      nutritionalValues?: Omit<
+        NutritionalValue,
+        "id" | "recipeId" | "createdAt"
+      >[];
+      userId: string;
+      isPublic: boolean;
+    } = await request.json();
 
-    if (
-      !recipeId ||
-      !userId ||
-      typeof value !== "number" ||
-      value < 1 ||
-      value > 5
-    ) {
+    if (!title || !category || !ingredients.length) {
       return NextResponse.json(
-        { error: "Invalid rating value (must be between 1 and 5)" },
+        { error: "Title, category, and ingredients are required" },
         { status: 400 }
       );
     }
 
-    const existingRating = await prisma.rating.findFirst({
-      where: { recipeId, userId },
-    });
-
-    let rating;
-    if (existingRating) {
-      rating = await prisma.rating.update({
-        where: { id: existingRating.id },
-        data: { value },
-      });
-    } else {
-      rating = await prisma.rating.create({
-        data: { recipeId, userId, value },
-      });
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json(rating, { status: 200 });
+    const newRecipe = await prisma.recipe.create({
+      data: {
+        title,
+        category,
+        description,
+        ingredients,
+        userId,
+        isPublic,
+        nutritionalValues: {
+          create:
+            nutritionalValues?.map((value) => ({
+              calories: value.calories || 0,
+              protein: value.protein || 0,
+              carbs: value.carbs || 0,
+              fats: value.fats || 0,
+              fiber: value.fiber ?? null,
+              sugar: value.sugar ?? null,
+              sodium: value.sodium ?? null,
+            })) || [],
+        },
+        ratings: isPublic ? { create: [] } : undefined,
+      },
+      include: {
+        nutritionalValues: true,
+        ratings: true,
+      },
+    });
+
+    return NextResponse.json(newRecipe, { status: 201 });
   } catch (error) {
-    console.error("POST /api/ratings error:", error);
+    console.error("POST /api/recipes error:", error);
     return NextResponse.json(
-      { error: "Failed to submit rating" },
+      { error: "Failed to create recipe" },
       { status: 500 }
     );
   }

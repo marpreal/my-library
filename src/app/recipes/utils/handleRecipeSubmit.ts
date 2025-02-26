@@ -38,19 +38,19 @@ export function handleRecipeSubmit({
     return;
   }
 
-  const cleanedNutritionalValues = (
+  const cleanedNutritionalValues: NutritionalValue[] = (
     Array.isArray(nutritionalValues) ? nutritionalValues : [nutritionalValues]
   ).map((value) => ({
     calories: value.calories || 0,
     protein: value.protein || 0,
     carbs: value.carbs || 0,
     fats: value.fats || 0,
-    fiber: value.fiber ?? null,
-    sugar: value.sugar ?? null,
-    sodium: value.sodium ?? null,
+    fiber: value.fiber !== undefined ? value.fiber : undefined,
+    sugar: value.sugar !== undefined ? value.sugar : undefined,
+    sodium: value.sodium !== undefined ? value.sodium : undefined,
   }));
 
-  const payload = {
+  const payload: Omit<Recipe, "id" | "user" | "comments"> = {
     title,
     category,
     description,
@@ -58,6 +58,9 @@ export function handleRecipeSubmit({
     nutritionalValues: cleanedNutritionalValues,
     userId,
     isPublic,
+    ratings: isPublic && !recipeToEdit ? [] : [],
+    averageRating:
+      isPublic && !recipeToEdit ? 0 : recipeToEdit?.averageRating ?? 0,
   };
 
   fetch("/api/recipes", {

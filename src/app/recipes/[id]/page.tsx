@@ -106,9 +106,9 @@ export default function RecipeDetailsPage({
       <div className="flex flex-col items-center gap-1">
         <span className="text-gray-600 text-lg">Average Rating</span>
         <div className="flex items-center gap-2">
-          <StarRating rating={recipe.averageRating} />
+          <StarRating rating={recipe.averageRating ?? 0} />
           <span className="text-lg text-gray-700">
-            {recipe.averageRating.toFixed(1)}
+            {(recipe.averageRating ?? 0).toFixed(1)}
           </span>
         </div>
       </div>

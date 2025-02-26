@@ -39,6 +39,6 @@ export type Recipe = {
   userId: string;
   user?: { name: string; image?: string };
   comments?: Comment[];
-  ratings: Rating[];
-  averageRating: number;
+  ratings?: Rating[];
+  averageRating?: number;
 };
