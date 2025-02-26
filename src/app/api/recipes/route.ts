@@ -271,68 +271,38 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const { id, commentId, userId } = await request.json();
+    const { id, userId } = await request.json();
 
-    if (!userId) {
+    if (!id || !userId) {
       return NextResponse.json(
-        { error: "User ID is required" },
+        { error: "Recipe ID and User ID are required" },
         { status: 400 }
       );
     }
 
-    if (commentId) {
-      const comment = await prisma.comment.findFirst({
-        where: { id: Number(commentId), userId },
-      });
+    const recipe = await prisma.recipe.findFirst({
+      where: { id: Number(id), userId },
+    });
 
-      if (!comment) {
-        return NextResponse.json(
-          { error: "Comment not found or unauthorized" },
-          { status: 403 }
-        );
-      }
-
-      await prisma.comment.delete({ where: { id: Number(commentId) } });
-
+    if (!recipe) {
       return NextResponse.json(
-        { message: "Comment deleted successfully" },
-        { status: 200 }
+        { error: "Recipe not found or unauthorized" },
+        { status: 404 }
       );
     }
 
-    if (id) {
-      const recipe = await prisma.recipe.findFirst({
-        where: {
-          id: Number(id),
-          OR: [{ isPublic: true }, userId ? { userId } : {}],
-        },
-        include: {
-          nutritionalValues: true,
-          comments: {
-            include: { user: { select: { name: true, image: true } } },
-          },
-          user: { select: { name: true, image: true } },
-        },
-      });
-
-      if (!recipe) {
-        return NextResponse.json(
-          { error: "Recipe not found or unauthorized" },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json(recipe, { status: 200 });
-    }
+    await prisma.recipe.delete({ where: { id: Number(id) } });
 
     return NextResponse.json(
-      { error: "No valid ID provided for deletion" },
-      { status: 400 }
+      { message: "Recipe deleted successfully" },
+      { status: 200 }
     );
   } catch (error) {
     console.error("DELETE /api/recipes error:", error);
     return NextResponse.json(
-      { error: "Failed to delete item" },
+      { error: "Failed to delete recipe" },
       { status: 500 }
     );
   }
 }
+

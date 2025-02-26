@@ -56,7 +56,7 @@ export function useRecipes(category: string) {
         if (!response.ok) throw new Error("Failed to fetch public recipes");
         const data: Recipe[] = await response.json();
 
-        setPublicRecipes(data); 
+        setPublicRecipes(data);
       } catch (error) {
         console.error("Error fetching public recipes:", error);
       }
@@ -79,6 +79,7 @@ export function useRecipes(category: string) {
       setSelectedRecipe(null);
       setIsModalOpen(false);
     },
+
     handleRecipeAdded: (newRecipe: Recipe) => {
       setRecipes((prev) => {
         if (selectedRecipe && newRecipe.id !== undefined) {
@@ -88,6 +89,7 @@ export function useRecipes(category: string) {
         }
       });
     },
+
     handleDelete: async (id?: number) => {
       if (id === undefined) return;
       const userConfirmed = confirm(
@@ -96,7 +98,7 @@ export function useRecipes(category: string) {
       if (!userConfirmed) return;
 
       try {
-        const response = await fetch("/api/recipes", {
+        const response = await fetch(`/api/recipes`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id, userId: session?.user?.id }),
@@ -104,16 +106,7 @@ export function useRecipes(category: string) {
 
         if (!response.ok) throw new Error("Failed to delete recipe");
 
-        const updatedRecipesResponse = await fetch(
-          `/api/recipes?category=${encodeURIComponent(category)}&userId=${
-            session?.user?.id
-          }`
-        );
-        if (!updatedRecipesResponse.ok)
-          throw new Error("Failed to refresh recipes");
-
-        const updatedRecipes = await updatedRecipesResponse.json();
-        setRecipes(updatedRecipes);
+        setRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
       } catch (error) {
         console.error("Error deleting recipe:", error);
       }
