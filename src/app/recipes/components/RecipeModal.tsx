@@ -280,6 +280,18 @@ export default function RecipeModal({
               </>
             )}
           </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="public"
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+              className="w-5 h-5"
+            />
+            <label htmlFor="public" className="text-lg">
+              Make this recipe public
+            </label>
+          </div>
 
           <div className="flex justify-between gap-4 mt-4">
             <div className="flex gap-4">

@@ -33,7 +33,7 @@ export function useRecipes(category: string) {
         if (!response.ok) throw new Error("Failed to fetch user recipes");
         const data: Recipe[] = await response.json();
 
-        setRecipes(data.filter((recipe) => recipe.category === category));
+        setRecipes(data.filter((recipe) => recipe.userId === userId));
       } catch (error) {
         console.error("Error fetching user recipes:", error);
       } finally {
@@ -47,21 +47,19 @@ export function useRecipes(category: string) {
   useEffect(() => {
     const fetchPublicRecipes = async () => {
       try {
-        const userId = session?.user?.id; 
         const response = await fetch(
-          `/api/recipes?category=${encodeURIComponent(
-            category
-          )}&publicOnly=true&userId=${userId}`
+          `/api/recipes?category=${encodeURIComponent(category)}&publicOnly=true`
         );
-
+    
         if (!response.ok) throw new Error("Failed to fetch public recipes");
         const data: Recipe[] = await response.json();
-
+    
         setPublicRecipes(data);
       } catch (error) {
         console.error("Error fetching public recipes:", error);
       }
     };
+    
 
     if (session) fetchPublicRecipes();
   }, [session, category]);
