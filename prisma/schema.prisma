@@ -130,6 +130,7 @@ model Recipe {
   createdAt        DateTime          @default(now())
   ingredients      String[]
   isPublic         Boolean           @default(false) 
+  imageUrl         String?          
   userId           String            @map("userId")
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   nutritionalValues NutritionalValue[] 

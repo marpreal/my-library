@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { handleRecipeSubmit } from "../utils/handleRecipeSubmit";
 import { NutritionalValue, Recipe } from "../recipe.types";
+import Image from "next/image";
 
 export default function RecipeModal({
   onClose,
@@ -26,7 +27,10 @@ export default function RecipeModal({
   const [description, setDescription] = useState("");
   const [ingredients, setIngredients] = useState<string[]>([""]);
   const [isPublic, setIsPublic] = useState(recipeToEdit?.isPublic ?? false);
-
+  const [imageFile, setImageFile] = useState<File | undefined>(undefined);
+  const [imageUrl, setImageUrl] = useState<string>(
+    recipeToEdit?.imageUrl || ""
+  );
   const [nutritionalValues, setNutritionalValues] = useState<
     NutritionalValue[]
   >(
@@ -123,7 +127,17 @@ export default function RecipeModal({
       )
     );
   };
-
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImageUrl(URL.createObjectURL(file));
+    }
+  };
+  const handleRemoveImage = () => {
+    setImageFile(undefined);
+    setImageUrl("");
+  };
   const validateForm = () => {
     const missingFields: string[] = [];
 
@@ -165,6 +179,7 @@ export default function RecipeModal({
               nutritionalValues,
               userId,
               isPublic,
+              imageFile,
               recipeToEdit,
               onRecipeAdded,
               onClose,
@@ -281,6 +296,35 @@ export default function RecipeModal({
               </>
             )}
           </div>
+
+          <div className="flex flex-col items-center gap-2">
+            {imageUrl ? (
+              <div className="relative">
+                <Image
+                  src={imageUrl}
+                  alt="Recipe Image"
+                  width={100}
+                  height={100}
+                  className="w-24 h-24 object-cover rounded-md border border-gray-300 shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm"
+                >
+                  ❌
+                </button>
+              </div>
+            ) : (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="border p-2 rounded-md"
+              />
+            )}
+          </div>
+
           <div className="flex items-center gap-2">
             <input
               type="checkbox"

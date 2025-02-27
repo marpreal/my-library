@@ -107,6 +107,7 @@ export async function POST(request: Request) {
       nutritionalValues,
       userId,
       isPublic,
+      imageUrl,
     }: {
       title: string;
       category: string;
@@ -118,6 +119,7 @@ export async function POST(request: Request) {
       >[];
       userId: string;
       isPublic: boolean;
+      imageUrl?: string;
     } = await request.json();
 
     if (!title || !category || !ingredients.length) {
@@ -142,13 +144,14 @@ export async function POST(request: Request) {
         ingredients,
         userId,
         isPublic,
+        imageUrl,
         nutritionalValues: {
           create:
             nutritionalValues?.map((value) => ({
-              calories: value.calories || 0,
-              protein: value.protein || 0,
-              carbs: value.carbs || 0,
-              fats: value.fats || 0,
+              calories: value.calories ?? 0,
+              protein: value.protein ?? 0,
+              carbs: value.carbs ?? 0,
+              fats: value.fats ?? 0,
               fiber: value.fiber ?? null,
               sugar: value.sugar ?? null,
               sodium: value.sodium ?? null,
@@ -183,32 +186,33 @@ export async function PUT(request: Request) {
       userId,
       nutritionalValues,
       isPublic,
+      imageUrl,
     } = await request.json();
 
-    if (!id || !title || !category || !ingredients.length)
+    if (!id || !title || !category || !ingredients.length) {
       return NextResponse.json(
         { error: "ID, title, category, and ingredients are required" },
         { status: 400 }
       );
+    }
 
-    if (!userId)
+    if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },
         { status: 400 }
       );
+    }
 
-    const recipe = await prisma.recipe.findFirst({
+    const existingRecipe = await prisma.recipe.findFirst({
       where: { id: Number(id), userId },
-      include: { nutritionalValues: true },
     });
 
-    if (!recipe) {
+    if (!existingRecipe) {
       return NextResponse.json(
         { error: "Recipe not found or unauthorized" },
         { status: 404 }
       );
     }
-
     const cleanedNutritionalValues = Array.isArray(nutritionalValues)
       ? nutritionalValues
       : [nutritionalValues];
@@ -254,7 +258,8 @@ export async function PUT(request: Request) {
         category,
         description,
         ingredients,
-        isPublic: isPublic ?? recipe.isPublic,
+        isPublic: isPublic ?? existingRecipe.isPublic,
+        imageUrl: imageUrl ?? existingRecipe.imageUrl,
       },
       include: { nutritionalValues: true },
     });
@@ -305,4 +310,3 @@ export async function DELETE(request: Request) {
     );
   }
 }
-

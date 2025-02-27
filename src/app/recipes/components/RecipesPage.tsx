@@ -6,6 +6,10 @@ import { useRecipes } from "../hooks/useRecipes";
 import Link from "next/link";
 import Image from "next/image";
 import StarRating from "./StarRating";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { useMemo } from "react";
 
 export default function RecipesPage({ category }: { category: string }) {
   const {
@@ -21,9 +25,40 @@ export default function RecipesPage({ category }: { category: string }) {
   } = useRecipes(category);
 
   const router = useRouter();
+  const sortedPublicRecipes = useMemo(() => {
+    return [...publicRecipes]
+      .filter((r) => (r.averageRating ?? 0) > 0)
+      .sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))
+      .concat(publicRecipes.filter((r) => !r.averageRating));
+  }, [publicRecipes]);
+
+  const displayedRecipes = useMemo(() => {
+    if (sortedPublicRecipes.length < 3) {
+      return sortedPublicRecipes;
+    }
+    return sortedPublicRecipes;
+  }, [sortedPublicRecipes]);
+
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: { slidesToShow: 2, slidesToScroll: 1 },
+      },
+      {
+        breakpoint: 768,
+        settings: { slidesToShow: 1, slidesToScroll: 1 },
+      },
+    ],
+  };
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-10 bg-[#fff5e6] relative">
+    <div className="min-h-screen flex flex-col items-center py-10 relative bg-cover bg-center before:absolute before:inset-0 before:bg-[url('/sweets-details.jpg')] before:bg-cover before:bg-center before:opacity-80 before:z-[-1] before:backdrop-blur-sm">
       <div className="absolute top-4 left-4 z-10">
         <button
           onClick={() => router.push("/recipes")}
@@ -33,7 +68,16 @@ export default function RecipesPage({ category }: { category: string }) {
         </button>
       </div>
 
-      <h1 className="text-4xl font-bold text-[#83511e] mb-10">
+      <div className="fixed top-10 right-10 z-10">
+        <button
+          onClick={() => openModal()}
+          className="px-6 py-3 bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white rounded-lg shadow-lg hover:scale-105 transition text-lg font-semibold"
+        >
+          + Add Recipe
+        </button>
+      </div>
+
+      <h1 className="text-4xl font-bold text-[#fff] mb-10 px-4 py-2 rounded-lg shadow-lg bg-gradient-to-r from-[#83511e] to-[#a56c3f] text-center text-shadow-md">
         {category} Recipes
       </h1>
 
@@ -51,13 +95,21 @@ export default function RecipesPage({ category }: { category: string }) {
                   <Link
                     key={recipe.id}
                     href={`/recipes/${recipe.id}`}
-                    className="block bg-white shadow-md rounded-lg p-6 border border-gray-300 hover:bg-gray-100 transition cursor-pointer relative"
+                    className="block bg-white shadow-md rounded-lg p-6 border border-gray-300 hover:bg-gray-100 transition cursor-pointer relative flex items-center gap-4"
                   >
-                    <div>
-                      <h2 className="text-2xl font-bold text-[#83511e] mb-2">
-                        {recipe.title}
-                      </h2>
-                    </div>
+                    {recipe.imageUrl && (
+                      <Image
+                        src={recipe.imageUrl}
+                        alt={recipe.title}
+                        width={60}
+                        height={60}
+                        className="w-16 h-16 object-cover rounded-md border border-gray-300 shadow-sm"
+                      />
+                    )}
+
+                    <h2 className="text-2xl font-bold text-[#83511e] flex-1 truncate">
+                      {recipe.title}
+                    </h2>
 
                     <div className="absolute top-4 right-4 flex gap-2">
                       <button
@@ -85,50 +137,61 @@ export default function RecipesPage({ category }: { category: string }) {
             </>
           )}
 
-          {publicRecipes.length > 0 && (
+          {sortedPublicRecipes.length > 0 && (
             <>
-              <h2 className="text-3xl font-bold text-[#83511e] mt-10 mb-4">
+              <h2 className="text-3xl font-bold text-white mt-10 mb-4 text-center bg-gradient-to-r from-[#83511e] to-[#a56c3f] px-6 py-3 rounded-md text-shadow-md">
                 Community Recipes
               </h2>
-              <div className="flex flex-col gap-6 w-full max-w-4xl">
-                {publicRecipes.map((recipe) => (
-                  <Link
-                    key={recipe.id}
-                    href={`/recipes/${recipe.id}`}
-                    className="block bg-white shadow-md rounded-lg p-6 border border-gray-300 hover:bg-gray-100 transition cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4 mb-2">
-                      {recipe.user?.image ? (
-                        <Image
-                          src={recipe.user.image}
-                          alt={recipe.user.name}
-                          width={40}
-                          height={40}
-                          className="w-10 h-10 rounded-full border border-gray-300 shadow-md"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full text-gray-600">
-                          {recipe.user?.name?.charAt(0).toUpperCase() ?? "U"}
-                        </div>
-                      )}
-                      <span className="text-lg font-semibold text-gray-800">
-                        {recipe.user?.name ?? "Unknown"}
-                      </span>
-                    </div>
 
-                    <h2 className="text-2xl font-bold text-[#83511e] mb-2">
-                      {recipe.title}
-                    </h2>
-                    <p className="text-gray-700">{recipe.category}</p>
-
-                    <div className="flex items-center gap-2 mt-2">
-                      <StarRating rating={recipe.averageRating ?? 0} />
-                      <span className="text-lg text-gray-600">
-                        {(recipe.averageRating ?? 0).toFixed(1)}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+              <div className="w-full max-w-6xl">
+                {displayedRecipes.length >= 3 ? (
+                  <Slider {...sliderSettings}>
+                    {displayedRecipes.map((recipe) => (
+                      <div key={recipe.id} className="px-2">
+                        <Link
+                          href={`/recipes/${recipe.id}`}
+                          className="block bg-white shadow-md rounded-lg p-6 border border-gray-300 hover:bg-gray-100 transition cursor-pointer"
+                        >
+                          <h2 className="text-2xl font-bold text-[#83511e] mb-2">
+                            {recipe.title}
+                          </h2>
+                          <p className="text-gray-700">{recipe.category}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <StarRating rating={recipe.averageRating ?? 0} />
+                            <span className="text-lg text-gray-600">
+                              {(recipe.averageRating ?? 0).toFixed(1)}
+                            </span>
+                          </div>
+                        </Link>
+                      </div>
+                    ))}
+                  </Slider>
+                ) : (
+                  <div className="flex justify-center gap-6 flex-wrap">
+                    {displayedRecipes.map((recipe) => (
+                      <div
+                        key={recipe.id}
+                        className="px-4 py-6 w-80 bg-white shadow-lg rounded-lg border border-gray-400"
+                      >
+                        <Link
+                          href={`/recipes/${recipe.id}`}
+                          className="block hover:bg-gray-100 transition cursor-pointer"
+                        >
+                          <h2 className="text-2xl font-bold text-[#83511e] mb-2">
+                            {recipe.title}
+                          </h2>
+                          <p className="text-gray-700">{recipe.category}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <StarRating rating={recipe.averageRating ?? 0} />
+                            <span className="text-lg text-gray-600">
+                              {(recipe.averageRating ?? 0).toFixed(1)}
+                            </span>
+                          </div>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -140,15 +203,6 @@ export default function RecipesPage({ category }: { category: string }) {
           )}
         </>
       )}
-
-      <div className="mt-10">
-        <button
-          onClick={() => openModal()}
-          className="px-6 py-3 bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white rounded-lg shadow-lg hover:scale-105 transition text-lg font-semibold"
-        >
-          + Add {category} Recipe
-        </button>
-      </div>
 
       {isModalOpen && (
         <RecipeModal

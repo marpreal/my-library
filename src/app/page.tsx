@@ -25,11 +25,17 @@ export default function Home() {
     <div className="relative min-h-screen">
       <div
         className={`absolute inset-0 bg-center bg-cover z-0 ${
-          theme === "dark" ? "bg-[url('/cybercore-bg.webp')] filter blur-md scale-105" : "bg-[url('/cottagecore-background.jpg')]"
+          theme === "dark"
+            ? "bg-[url('/cybercore-bg.webp')] filter blur-md scale-105"
+            : "bg-[url('/cottagecore-background.jpg')]"
         }`}
       ></div>
 
-      <div className={`relative z-10 ${theme === "dark" ? "text-white" : "text-[#3a2f2f]"}`}>
+      <div
+        className={`relative z-10 ${
+          theme === "dark" ? "text-white" : "text-[#3a2f2f]"
+        }`}
+      >
         <Navbar
           userName={userName}
           handleSignIn={handleSignIn}

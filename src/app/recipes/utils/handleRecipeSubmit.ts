@@ -1,6 +1,6 @@
 import { NutritionalValue, Recipe } from "../recipe.types";
 
-export function handleRecipeSubmit({
+export async function handleRecipeSubmit({
   e,
   title,
   category,
@@ -9,6 +9,7 @@ export function handleRecipeSubmit({
   nutritionalValues,
   userId,
   isPublic,
+  imageFile,
   recipeToEdit,
   onRecipeAdded,
   onClose,
@@ -21,6 +22,7 @@ export function handleRecipeSubmit({
   nutritionalValues: NutritionalValue | NutritionalValue[];
   userId: string;
   isPublic: boolean;
+  imageFile?: File;
   recipeToEdit?: Recipe | null;
   onRecipeAdded: (recipe: Recipe) => void;
   onClose: () => void;
@@ -36,6 +38,29 @@ export function handleRecipeSubmit({
     alert("❌ You must be logged in to add or edit a recipe.");
     console.error("❌ userId is undefined or null");
     return;
+  }
+
+  let imageUrl = recipeToEdit?.imageUrl;
+
+  if (imageFile) {
+    const formData = new FormData();
+    formData.append("file", imageFile);
+
+    try {
+      const response = await fetch("/api/upload-recipe", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to upload image");
+
+      imageUrl = data.imageUrl;
+    } catch (error) {
+      console.error("❌ Image upload failed:", error);
+      alert("❌ Failed to upload image.");
+      return;
+    }
   }
 
   const cleanedNutritionalValues: NutritionalValue[] = (
@@ -58,6 +83,7 @@ export function handleRecipeSubmit({
     nutritionalValues: cleanedNutritionalValues,
     userId,
     isPublic,
+    imageUrl,
     ratings: isPublic && !recipeToEdit ? [] : [],
     averageRating:
       isPublic && !recipeToEdit ? 0 : recipeToEdit?.averageRating ?? 0,

@@ -41,4 +41,5 @@ export type Recipe = {
   comments?: Comment[];
   ratings?: Rating[];
   averageRating?: number;
+  imageUrl?: string;
 };
