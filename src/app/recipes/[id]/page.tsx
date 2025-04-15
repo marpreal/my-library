@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { Recipe } from "../recipe.types";
 import CommentSection from "./components/CommentSection";
 import StarRating from "../components/StarRating";
+import Image from "next/image";
 import { use } from "react";
 
 export default function RecipeDetailsPage({
@@ -51,6 +52,7 @@ export default function RecipeDetailsPage({
       ([key, value]) => key !== "id" && value !== 0 && value !== undefined
     )
   );
+
   const handleRatingSubmit = async (value: number) => {
     if (!session?.user) {
       alert("You must be logged in to rate a recipe.");
@@ -101,9 +103,24 @@ export default function RecipeDetailsPage({
       >
         ← Back
       </button>
-      <h1 className="text-4xl font-bold text-[#83511e] mb-6">{recipe.title}</h1>
 
-      <div className="flex flex-col items-center gap-1">
+      <h1 className="text-4xl font-bold text-[#83511e] mb-6 text-center">
+        {recipe.title}
+      </h1>
+
+      {recipe.imageUrl && (
+        <div className="mb-8">
+          <Image
+            src={recipe.imageUrl}
+            alt={recipe.title}
+            width={320}
+            height={320}
+            className="w-80 h-80 object-cover rounded-lg shadow-lg border border-gray-300"
+          />
+        </div>
+      )}
+
+      <div className="flex flex-col items-center gap-1 mb-6">
         <span className="text-gray-600 text-lg">Average Rating</span>
         <div className="flex items-center gap-2">
           <StarRating rating={recipe.averageRating ?? 0} />
@@ -114,7 +131,7 @@ export default function RecipeDetailsPage({
       </div>
 
       {session?.user && (
-        <div className="mt-4 flex flex-col items-center gap-1">
+        <div className="mt-2 mb-8 flex flex-col items-center gap-1">
           <span className="text-gray-600 text-lg">Your Rating</span>
           <StarRating rating={0} onRate={handleRatingSubmit} />
         </div>
@@ -136,16 +153,13 @@ export default function RecipeDetailsPage({
           ))}
         </ul>
       </div>
+
       {recipe.description && (
-        <p className="text-lg text-gray-700 mb-12 leading-relaxed text-center max-w-2xl">
-          {recipe.description.split("\n").map((line, index) => (
-            <span key={index}>
-              {line}
-              <br />
-            </span>
-          ))}
+        <p className="text-lg text-gray-700 mb-12 leading-relaxed text-center max-w-2xl whitespace-pre-line">
+          {recipe.description}
         </p>
       )}
+
       {hasValidNutritionalValues && (
         <div className="mt-8 w-full max-w-sm bg-white shadow-md rounded-lg p-4 border border-gray-300">
           <h2 className="text-xl font-semibold text-[#83511e] mb-2 text-center">
