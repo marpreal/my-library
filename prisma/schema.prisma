@@ -8,37 +8,37 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  name          String?
-  email         String   @unique
-  image         String?
-  createdAt     DateTime @default(now())
-  bio           String?
-  favoriteGenre String?
-  location      String?
-  theme         String?
-  books         Book[]
-  movies        Movie[]
-  movieReviews  MovieReview[]
-  recipes       Recipe[]
-  reviews       Review[]
-  tbrBooks      TBRBook[]
-  comments      Comment[]
-  ratings       Rating[] 
-
-  sentMessages      Message[] @relation("SentMessages") 
-  receivedMessages  Message[] @relation("ReceivedMessages") 
+  id               String         @id @default(uuid())
+  name             String?
+  email            String         @unique
+  image            String?
+  createdAt        DateTime       @default(now())
+  bio              String?
+  favoriteGenre    String?
+  location         String?
+  theme            String?
+  books            Book[]
+  comments         Comment[]
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  sentMessages     Message[]      @relation("SentMessages")
+  movies           Movie[]
+  movieReviews     MovieReview[]
+  ratings          Rating[]
+  recipes          Recipe[]
+  reviews          Review[]
+  tbrBooks         TBRBook[]
+  DailyDiet        DailyDiet[]
+  ShoppingCart     ShoppingCart[]
 }
 
 model Message {
   id          String   @id @default(uuid())
   senderId    String
-  recipientId String?  
   content     String
   timestamp   DateTime @default(now())
-
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade) 
-  recipient   User?    @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade) 
+  recipientId String?
+  recipient   User?    @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model Book {
@@ -107,49 +107,90 @@ model Comment {
   createdAt DateTime @default(now())
   userId    String
   recipeId  Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Rating {
   id        Int      @id @default(autoincrement())
-  value     Int     
-  userId    String   
-  recipeId  Int      
+  value     Int
+  userId    String
+  recipeId  Int
   createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Recipe {
-  id               Int               @id @default(autoincrement())
-  title            String
-  category         String
-  description      String?
-  createdAt        DateTime          @default(now())
-  ingredients      String[]
-  isPublic         Boolean           @default(false) 
-  imageUrl         String?          
-  userId           String            @map("userId")
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  nutritionalValues NutritionalValue[] 
-  comments         Comment[]          
-  ratings         Rating[]            
+  id                Int                @id @default(autoincrement())
+  title             String
+  category          String
+  description       String?
+  createdAt         DateTime           @default(now())
+  ingredients       String[]
+  userId            String             @map("userId")
+  isPublic          Boolean            @default(false)
+  imageUrl          String?
+  comments          Comment[]
+  nutritionalValues NutritionalValue[]
+  ratings           Rating[]
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Meal              Meal[]
 }
 
 model NutritionalValue {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   recipeId  Int
-  calories  Float   
-  protein   Float   
-  carbs     Float   
-  fats      Float   
-  fiber     Float?  
-  sugar     Float?  
-  sodium    Float?  
+  calories  Float
+  protein   Float
+  carbs     Float
+  fats      Float
+  fiber     Float?
+  sugar     Float?
+  sodium    Float?
   createdAt DateTime @default(now())
-
-  recipe    Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade) 
+  recipe    Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
 }
 
+model DailyDiet {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  date      DateTime
+  meals     Meal[]
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Meal {
+  id          Int      @id @default(autoincrement())
+  dailyDietId Int
+  type        String
+  recipeId    Int?     
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  dailyDiet   DailyDiet @relation(fields: [dailyDietId], references: [id], onDelete: Cascade)
+  recipe      Recipe?   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+}
+
+
+model ShoppingCart {
+  id        Int            @id @default(autoincrement())
+  userId    String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  items     ShoppingItem[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ShoppingItem {
+  id             Int     @id @default(autoincrement())
+  shoppingCartId Int
+  name           String
+  quantity       String?
+  checked        Boolean @default(false)
+
+  shoppingCart ShoppingCart @relation(fields: [shoppingCartId], references: [id], onDelete: Cascade)
+}

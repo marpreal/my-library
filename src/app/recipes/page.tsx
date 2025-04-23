@@ -15,13 +15,8 @@ export default function RecipesPage() {
   const { userName, theme, toggleTheme, handleSignIn, handleSignOut } =
     useUserAndTheme();
 
-  if (status === "loading") {
-    return <div>Loading...</div>;
-  }
-
-  if (!session) {
-    return <div>You must be logged in to view recipes.</div>;
-  }
+  if (status === "loading") return <div>Loading...</div>;
+  if (!session) return <div>You must be logged in to view recipes.</div>;
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -35,6 +30,7 @@ export default function RecipesPage() {
         theme={theme ?? "light"}
         toggleTheme={toggleTheme}
       />
+
       <div
         className="min-h-screen flex flex-col items-center py-10 relative overflow-hidden"
         style={{
@@ -78,12 +74,18 @@ export default function RecipesPage() {
           />
         </div>
 
-        <div className="relative z-10">
+        <div className="relative z-10 flex flex-col sm:flex-row gap-4 justify-center items-center mt-4">
           <button
             onClick={openModal}
-            className="px-8 py-4 bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white rounded-lg shadow-xl hover:scale-105 transition text-lg font-semibold"
+            className="px-8 py-4 bg-gradient-to-r from-[#DAA520] to-[#B8860B] text-white rounded-xl shadow-xl hover:scale-105 transition text-lg font-semibold"
           >
             + Add Recipe
+          </button>
+          <button
+            onClick={() => router.push("/recipes/daily-diet")}
+            className="px-8 py-4 bg-gradient-to-r from-[#6B8E23] to-[#556B2F] text-white rounded-xl shadow-xl hover:scale-105 transition text-lg font-semibold"
+          >
+            🍽️ View Weekly Diet Schedule
           </button>
         </div>
 
