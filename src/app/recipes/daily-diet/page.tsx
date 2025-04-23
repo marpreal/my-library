@@ -9,17 +9,24 @@ import { useUserAndTheme } from "../../hooks/useUserAndTheme";
 
 const mealTypes = ["Desayuno", "Comida", "Merienda", "Cena"];
 
-type Meal = {
+interface Meal {
   type: string;
   recipe: {
     title: string;
   };
-};
+}
 
-type DailyDietResponse = {
+interface DailyDietResponse {
   date: string;
   meals: Meal[];
-}[];
+}
+
+interface ShoppingItem {
+  id: number;
+  name: string;
+  quantity?: string;
+  checked: boolean;
+}
 
 export default function WeeklyDietPage() {
   const { data: session, status } = useSession();
@@ -28,6 +35,8 @@ export default function WeeklyDietPage() {
     useUserAndTheme();
 
   const [weeklyDiet, setWeeklyDiet] = useState<Record<string, Meal[]>>({});
+  const [shoppingList, setShoppingList] = useState<ShoppingItem[]>([]);
+  const [newItem, setNewItem] = useState<string>("");
 
   const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
 
@@ -36,7 +45,7 @@ export default function WeeklyDietPage() {
       const res = await fetch("/api/daily-diet");
       if (!res.ok) throw new Error("Failed to fetch daily diet data");
 
-      const data: DailyDietResponse = await res.json();
+      const data: DailyDietResponse[] = await res.json();
       const grouped = data.reduce((acc: Record<string, Meal[]>, entry) => {
         const date = format(new Date(entry.date), "yyyy-MM-dd");
         acc[date] = entry.meals;
@@ -48,8 +57,53 @@ export default function WeeklyDietPage() {
     }
   };
 
+  const fetchShoppingList = async () => {
+    try {
+      const res = await fetch("/api/shopping-cart");
+      if (!res.ok) throw new Error("Failed to fetch shopping list");
+
+      const data = await res.json();
+
+      // Aseguramos que sea un array antes de setear el estado
+      if (Array.isArray(data)) {
+        setShoppingList(data);
+      } else {
+        console.warn("API returned invalid shopping list format", data);
+        setShoppingList([]);
+      }
+    } catch (error) {
+      console.error(
+        "❌ Error fetching shopping list:",
+        (error as Error).message
+      );
+    }
+  };
+
+  const addItem = async () => {
+    if (!newItem.trim()) return;
+    const res = await fetch("/api/shopping-cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newItem }),
+    });
+    if (res.ok) {
+      setNewItem("");
+      fetchShoppingList();
+    }
+  };
+
+  const toggleItem = async (id: number) => {
+    const res = await fetch(`/api/shopping-cart/${id}/toggle`, {
+      method: "PATCH",
+    });
+    if (res.ok) fetchShoppingList();
+  };
+
   useEffect(() => {
-    if (session) fetchDiets();
+    if (session) {
+      fetchDiets();
+      fetchShoppingList();
+    }
   }, [session]);
 
   if (status === "loading") return <div>Loading...</div>;
@@ -123,6 +177,57 @@ export default function WeeklyDietPage() {
         >
           ➕ Add Meals to a Day
         </button>
+      </div>
+
+      <div className="mt-16 max-w-md mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h2 className="text-2xl font-bold text-green-800 mb-4 text-center">
+          🛒 Shopping List
+        </h2>
+
+        <div className="flex mb-4 gap-2">
+          <input
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+            placeholder="Add item..."
+            className="flex-grow px-3 py-2 border rounded"
+          />
+          <button
+            onClick={addItem}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Add
+          </button>
+        </div>
+
+        <ul className="space-y-2">
+          {shoppingList.map((item) => (
+            <li
+              key={item.id}
+              className={`flex justify-between px-3 py-2 border rounded transition ${
+                item.checked ? "bg-green-100 line-through" : "bg-white"
+              }`}
+            >
+              <span
+                className="cursor-pointer flex-1"
+                onClick={() => toggleItem(item.id)}
+              >
+                {item.name}
+                {item.quantity ? ` (${item.quantity})` : ""}
+              </span>
+              <button
+                onClick={async () => {
+                  await fetch(`/api/shopping-cart/${item.id}`, {
+                    method: "DELETE",
+                  });
+                  fetchShoppingList();
+                }}
+                className="text-red-500 hover:text-red-700 ml-2"
+              >
+                ❌
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
